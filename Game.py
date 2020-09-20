@@ -1,4 +1,5 @@
 import tkinter as tk
+from AI import Ai
 
 
 class Game:
@@ -9,6 +10,7 @@ class Game:
         self.__canvas = canvas
         self.__destination_length = 10
         self.__visited = set()
+        self.__ai = Ai(board)
 
     def draw(self):
         self.board.draw(self.__canvas)
@@ -19,6 +21,7 @@ class Game:
     def __button1_callback(self, event):
         if (self.__canvas.find_withtag(tk.CURRENT)
                 and self.__canvas.itemcget(tk.CURRENT, 'fill') == 'white'):
+            curTag = self.__canvas.itemcget(tk.CURRENT, 'tag')
             if self.playersTurn == "red":
                 self.__canvas.itemconfig(tk.CURRENT, fill="blue")
                 self.__canvas.update_idletasks()
@@ -27,6 +30,11 @@ class Game:
                 self.playersTurn = "blue"
                 if self.is_red_winner():
                     print("game over: red is the winner")
+                index_dash = curTag.find('-')
+                index_space = curTag.find(' ')
+                row = int(curTag[0:index_dash])
+                col = int(curTag[index_dash + 1:index_space])
+                self.__ai.distance_to_all(row, col)
             else:
                 self.__canvas.itemconfig(tk.CURRENT, fill="red")
                 self.__canvas.update_idletasks()
@@ -35,6 +43,11 @@ class Game:
                 self.playersTurn = "red"
                 if self.is_blue_winner():
                     print("game over: blue is the winner")
+                index_dash = curTag.find('-')
+                index_space = curTag.find(' ')
+                row = int(curTag[0:index_dash])
+                col = int(curTag[index_dash + 1:index_space])
+                self.__ai.distance_to_all(row, col)
 
     def is_red_winner(self):
         for row in range(11):

@@ -5,22 +5,27 @@ from Hexagon import Hexagon
 
 class Board:
 
-    def __init__(self, offset_x, offset_y, width):
+    def __init__(self, offset_x, offset_y, width, canvas):
         self.tiles = [[]]
+        self.canvas = canvas
         self.tiles = np.empty((11, 11), Hexagon)
+        self.rowLength = 11
+        self.columnLength = 11
         self.__edges = []
         self.__offset_x = offset_x
         self.__offset_y = offset_y
-        self.__width = width
-        self.__init_drawable_board()
+        self.width = width
+        self.__init_drawable_board(canvas)
         self.__hexagonWidth = width / 13
         self.__radiusHexagon = (self.__hexagonWidth / 2) / m.cos(m.radians(30))
         self.__lineEdgeWidth = 19 * self.__hexagonWidth
-        delta_y = self.__radiusHexagon * m.cos(m.radians(60)) + self.__radiusHexagon
-        self.__lineEdgeHeight = 13 * delta_y + delta_y / 2
+        delta_y = self.__radiusHexagon
+        self.__lineEdgeHeight = 20 * delta_y
+        self.width = self.__lineEdgeWidth + 10
+        self.offsetYRect = self.__offset_y - (delta_y + 4)
 
-    def __init_drawable_board(self):
-        w = self.__width / 13
+    def __init_drawable_board(self, canvas):
+        w = self.width / 13
         offset_x = self.__offset_x
         offset_y = self.__offset_y
         r = (w / 2) / m.cos(m.radians(30))
@@ -35,11 +40,11 @@ class Board:
                     self.__edges.append(Hexagon(w, x, y, 'black', 'black', 3, "edge"))
                 elif row == -1 or row == 11:
                     h = Hexagon(w, x, y, 'black', 'blue', 3, "edgeRed")
-                    h.add_text("{}".format(col + 1))
+                    h.add_text("{}".format(col + 1), canvas)
                     self.__edges.append(h)
                 elif col == -1 or col == 11:
                     h = Hexagon(w, x, y, 'black', 'red', 3, "edgeBlue")
-                    h.add_text(chr(65 + row))
+                    h.add_text(chr(65 + row), canvas)
                     self.__edges.append(h)
                 else:
                     self.tiles[row][col] = Hexagon(w, x, y, 'black', 'white', 3, "{}-{}".format(row, col))
@@ -55,8 +60,8 @@ class Board:
         delta_y = r * m.cos(m.radians(60)) + r
         x = self.__offset_x - r
         y = self.__offset_y - (delta_y + 4)
-        w = self.__lineEdgeWidth + 7
-        h = self.__lineEdgeHeight + 2
+        w = self.__lineEdgeWidth + 10
+        h = self.__lineEdgeHeight + 10
         canvas.create_rectangle(x, y, x + w, y + h)
 
     def clear_board(self, canvas):

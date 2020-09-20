@@ -5,8 +5,10 @@ from Vector2 import Vec2
 
 class Hexagon:
     def __init__(self, width, x, y, outline_color, fill_color, outline_thickness, tag):  # x - left most edge, y - top
-        radius = (width / 2) / m.cos(m.radians(30))  # distance between the left most edge and the center point
-        self.__width = width
+        radius = (width / 2) / m.cos(m.radians(30))
+        self.width = width  # distance between the left most edge and the center point
+        self.height = radius * 2
+        self.side_length = radius
         self.__mOutlineThick = outline_thickness
         self.__mOutColor = outline_color
         self.__mRadius = radius
@@ -19,6 +21,8 @@ class Hexagon:
         self.__is_text = False
         self.__text = ""
         self.__font = None
+        self.__text_graphic = None
+        self.__textColor = 'white'
 
     def __init_hexagon(self):
         r = self.__mRadius
@@ -36,18 +40,19 @@ class Hexagon:
     def draw(self, canvas):
         canvas.create_polygon(self.__mCoordinates, outline=self.__mOutColor,
                               fill=self.__fillColor, width=self.__mOutlineThick, tag=self.__tag)
-        if self.__is_text:
-            canvas.create_text(self.__mCenterPos.x, self.__mCenterPos.y, text=self.__text, fill='white',
-                               font=self.__font, tag=self.__tag)
+        self.__text_graphic = canvas.create_text(self.__mCenterPos.x, self.__mCenterPos.y, text=self.__text,
+                                                 fill=self.__textColor, font=self.__font, tag=self.__tag)
 
     def get_radius(self):
         return self.__mRadius
 
-    def add_text(self, text):
-        w = m.floor(self.__width / 3)
+    def add_text(self, text, canvas, color='white'):
+        w = m.floor(self.width / 3)
         self.__is_text = True
         self.__text = text
         self.__font = tkf.Font(family="Lucida Grande", size=w)
+        self.__textColor = color
+        self.draw(canvas)
 
     def get_fill_color(self, canvas):
         return canvas.itemcget(self.__tag, 'fill')
