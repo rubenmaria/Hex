@@ -19,7 +19,7 @@ class Hexagon:
         self.__tag = tag
         self.__fillColor = fill_color
         self.__is_text = False
-        self.__text = ""
+        self.text = ""
         self.__font = None
         self.__text_graphic = None
         self.__textColor = 'white'
@@ -40,7 +40,7 @@ class Hexagon:
     def draw(self, canvas):
         canvas.create_polygon(self.__mCoordinates, outline=self.__mOutColor,
                               fill=self.__fillColor, width=self.__mOutlineThick, tag=self.__tag)
-        self.__text_graphic = canvas.create_text(self.__mCenterPos.x, self.__mCenterPos.y, text=self.__text,
+        self.__text_graphic = canvas.create_text(self.__mCenterPos.x, self.__mCenterPos.y, text=self.text,
                                                  fill=self.__textColor, font=self.__font, tag=self.__tag)
 
     def get_radius(self):
@@ -49,10 +49,13 @@ class Hexagon:
     def add_text(self, text, canvas, color='white'):
         w = m.floor(self.width / 3)
         self.__is_text = True
-        self.__text = text
+        self.text = text
         self.__font = tkf.Font(family="Lucida Grande", size=w)
         self.__textColor = color
         self.draw(canvas)
+
+    def change_text(self, canvas, text):
+        canvas.itemconfig(self.__text_graphic, text=text)
 
     def get_fill_color(self, canvas):
         return canvas.itemcget(self.__tag, 'fill')
