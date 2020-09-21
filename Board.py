@@ -68,3 +68,4 @@ class Board:
         for tile_arrays in self.tiles:
             for tile in tile_arrays:
                 tile.set_color(canvas, "white")
+                tile.change_text(canvas, '')
