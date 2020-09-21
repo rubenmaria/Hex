@@ -62,3 +62,67 @@ class Ai:
     def __write_distance(self, tile, distance):
         if tile.text == "":
             tile.add_text(str(distance), self.__board.canvas, 'black')
+
+    def distance_from_to(self, row_from, column_from, row_to, column_to):
+        self.__visited.add((row_from, column_from))
+        self.__to_examine.add((row_from, column_from))
+        distance = 1
+        tiles_to_examine = True
+        while tiles_to_examine:
+            to_examine_count = len(self.__to_examine)
+            tiles_to_examine = to_examine_count > 0
+            examine = copy.deepcopy(self.__to_examine)
+            self.__to_examine.clear()
+            for tile_coordinates in examine:
+                current_row = tile_coordinates[0]
+                current_column = tile_coordinates[1]
+                no_column_border = current_column < self.__board.columnLength - 1
+                no_row_border = current_row < self.__board.rowLength - 1
+                if (current_row >= self.__board.rowLength or current_column >= self.__board.columnLength
+                        or current_column < 0 or current_row < 0):
+                    continue
+                if current_column > 0:
+                    if not ((current_row, current_column - 1) in self.__visited):
+                        if current_row == row_to and current_column - 1 == column_to:
+                            return distance - 1
+                        temp_tile = self.__board.tiles[current_row][current_column - 1]
+                        self.__write_distance(temp_tile, distance)
+                        self.__to_examine.add((current_row, current_column - 1))
+                        self.__visited.add((current_row, current_column - 1))
+                    if not ((current_row + 1, current_column - 1) in self.__visited) and no_row_border:
+                        if current_row + 1 == row_to and current_column - 1 == column_to:
+                            return distance - 1
+                        temp_tile = self.__board.tiles[current_row + 1][current_column - 1]
+                        self.__write_distance(temp_tile, distance)
+                        self.__to_examine.add((current_row + 1, current_column - 1))
+                        self.__visited.add((current_row + 1, current_column - 1))
+                if current_row > 0:
+                    if not ((current_row - 1, current_column) in self.__visited):
+                        if current_row - 1 == row_to and current_column == column_to:
+                            return distance - 1
+                        temp_tile = self.__board.tiles[current_row - 1][current_column]
+                        self.__write_distance(temp_tile, distance)
+                        self.__to_examine.add((current_row - 1, current_column))
+                        self.__visited.add((current_row - 1, current_column))
+                    if not ((current_row - 1, current_column + 1) in self.__visited) and no_column_border:
+                        if current_row - 1 == row_to and current_column + 1 == column_to:
+                            return distance - 1
+                        temp_tile = self.__board.tiles[current_row - 1][current_column + 1]
+                        self.__write_distance(temp_tile, distance)
+                        self.__to_examine.add((current_row - 1, current_column + 1))
+                        self.__visited.add((current_row - 1, current_column + 1))
+                if not ((current_row + 1, current_column) in self.__visited) and no_row_border:
+                    if current_row + 1 == row_to and current_column == column_to:
+                        return distance - 1
+                    temp_tile = self.__board.tiles[current_row + 1][current_column]
+                    self.__write_distance(temp_tile, distance)
+                    self.__to_examine.add((current_row + 1, current_column))
+                    self.__visited.add((current_row + 1, current_column))
+                if not ((current_row, current_column + 1) in self.__visited) and no_column_border:
+                    if current_row == row_to and current_column + 1 == column_to:
+                        return distance - 1
+                    temp_tile = self.__board.tiles[current_row][current_column + 1]
+                    self.__write_distance(temp_tile, distance)
+                    self.__to_examine.add((current_row, current_column + 1))
+                    self.__visited.add((current_row, current_column + 1))
+            distance += 1
