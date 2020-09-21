@@ -21,7 +21,7 @@ class Game:
     def __button1_callback(self, event):
         if (self.__canvas.find_withtag(tk.CURRENT)
                 and self.__canvas.itemcget(tk.CURRENT, 'fill') == 'white'):
-            curTag = self.__canvas.itemcget(tk.CURRENT, 'tag')
+            cur_tag = self.__canvas.itemcget(tk.CURRENT, 'tag')
             if self.playersTurn == "red":
                 self.__canvas.itemconfig(tk.CURRENT, fill="blue")
                 self.__canvas.update_idletasks()
@@ -30,10 +30,10 @@ class Game:
                 self.playersTurn = "blue"
                 if self.is_red_winner():
                     print("game over: red is the winner")
-                index_dash = curTag.find('-')
-                index_space = curTag.find(' ')
-                row = int(curTag[0:index_dash])
-                col = int(curTag[index_dash + 1:index_space])
+                index_dash = cur_tag.find('-')
+                index_space = cur_tag.find(' ')
+                row = int(cur_tag[0:index_dash])
+                col = int(cur_tag[index_dash + 1:index_space])
                 self.__ai.distance_to_all(row, col)
             else:
                 self.__canvas.itemconfig(tk.CURRENT, fill="red")
@@ -43,10 +43,10 @@ class Game:
                 self.playersTurn = "red"
                 if self.is_blue_winner():
                     print("game over: blue is the winner")
-                index_dash = curTag.find('-')
-                index_space = curTag.find(' ')
-                row = int(curTag[0:index_dash])
-                col = int(curTag[index_dash + 1:index_space])
+                index_dash = cur_tag.find('-')
+                index_space = cur_tag.find(' ')
+                row = int(cur_tag[0:index_dash])
+                col = int(cur_tag[index_dash + 1:index_space])
                 self.__ai.distance_to_all(row, col)
 
     def is_red_winner(self):

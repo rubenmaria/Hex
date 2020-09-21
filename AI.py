@@ -36,11 +36,6 @@ class Ai:
                         self.__write_distance(temp_tile, distance)
                         self.__to_examine.add((current_row + 1, current_column - 1))
                         self.__visited.add((current_row + 1, current_column - 1))
-                if not ((current_row + 1, current_column) in self.__visited) and no_row_border:
-                    temp_tile = self.__board.tiles[current_row + 1][current_column]
-                    self.__write_distance(temp_tile, distance)
-                    self.__to_examine.add((current_row + 1, current_column))
-                    self.__visited.add((current_row + 1, current_column))
                 if current_row > 0:
                     if not ((current_row - 1, current_column) in self.__visited):
                         temp_tile = self.__board.tiles[current_row - 1][current_column]
@@ -52,6 +47,11 @@ class Ai:
                         self.__write_distance(temp_tile, distance)
                         self.__to_examine.add((current_row - 1, current_column + 1))
                         self.__visited.add((current_row - 1, current_column + 1))
+                if not ((current_row + 1, current_column) in self.__visited) and no_row_border:
+                    temp_tile = self.__board.tiles[current_row + 1][current_column]
+                    self.__write_distance(temp_tile, distance)
+                    self.__to_examine.add((current_row + 1, current_column))
+                    self.__visited.add((current_row + 1, current_column))
                 if not ((current_row, current_column + 1) in self.__visited) and no_column_border:
                     temp_tile = self.__board.tiles[current_row][current_column + 1]
                     self.__write_distance(temp_tile, distance)
