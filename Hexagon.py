@@ -16,8 +16,8 @@ class Hexagon:
         self.__mPoints = []
         self.__mCoordinates = []
         self.__init_hexagon()
-        self.__tag = tag
-        self.__fillColor = fill_color
+        self.tag = tag
+        self.fillColor = fill_color
         self.__is_text = False
         self.text = ""
         self.__font = None
@@ -39,9 +39,9 @@ class Hexagon:
 
     def draw(self, canvas):
         canvas.create_polygon(self.__mCoordinates, outline=self.__mOutColor,
-                              fill=self.__fillColor, width=self.__mOutlineThick, tag=self.__tag)
+                              fill=self.fillColor, width=self.__mOutlineThick, tag=self.tag)
         self.__text_graphic = canvas.create_text(self.__mCenterPos.x, self.__mCenterPos.y, text=self.text,
-                                                 fill=self.__textColor, font=self.__font, tag=self.__tag)
+                                                 fill=self.__textColor, font=self.__font, tag=self.tag)
 
     def get_radius(self):
         return self.__mRadius
@@ -58,7 +58,8 @@ class Hexagon:
         canvas.itemconfig(self.__text_graphic, text=text)
 
     def get_fill_color(self, canvas):
-        return canvas.itemcget(self.__tag, 'fill')
+        return canvas.itemcget(self.tag, 'fill')
 
     def set_color(self, canvas, color):
-        canvas.itemconfig(self.__tag, fill=color)
+        self.fillColor = color
+        canvas.itemconfig(self.tag, fill=color)

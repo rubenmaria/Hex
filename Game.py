@@ -7,6 +7,8 @@ class Game:
         self.playersTurn = "red"
         self.playerBegins = "red"
         self.board = board
+        self.occupiedByBlue = list()
+        self.occupiedByRed = list()
         self.__canvas = canvas
         self.__destination_length = 10
         self.__visited = set()
@@ -34,7 +36,13 @@ class Game:
                 index_space = cur_tag.find(' ')
                 row = int(cur_tag[0:index_dash])
                 col = int(cur_tag[index_dash + 1:index_space])
-                self.__ai.distance_to_all(row, col)
+                self.board.tiles[row][col].fillColor = "red"
+                self.occupiedByRed.append((row, col))
+                print(self.occupiedByRed)
+                if len(self.occupiedByRed) == 5:
+                    tile_from = self.occupiedByRed[0]
+                    tile_to = self.occupiedByRed[1]
+                    print("distance : ", self.__ai.get_tiles_to_place_red(0))
             else:
                 self.__canvas.itemconfig(tk.CURRENT, fill="red")
                 self.__canvas.update_idletasks()
@@ -47,7 +55,10 @@ class Game:
                 index_space = cur_tag.find(' ')
                 row = int(cur_tag[0:index_dash])
                 col = int(cur_tag[index_dash + 1:index_space])
-                self.__ai.distance_to_all(row, col)
+                self.board.tiles[row][col].fillColor = "blue"
+                self.occupiedByBlue.append((row, col))
+                # self.__ai.distance_to_all(row, col, "red")
+                print(self.occupiedByBlue)
 
     def is_red_winner(self):
         for row in range(11):
