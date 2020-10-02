@@ -160,7 +160,7 @@ class Ai:
                         or current_column < 0 or current_row < 0):
                     continue
                 if current_column >= self.__board.columnLength - 1:
-                    return distance - 1, (row, col)
+                    return distance - 1, (current_row, current_column)
                 if not ((current_row, current_column + 1) in self.__visited) and no_column_border:
                     temp_tile = self.__board.tiles[current_row][current_column + 1]
                     if temp_tile.fillColor == "red":

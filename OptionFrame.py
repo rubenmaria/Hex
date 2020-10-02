@@ -5,11 +5,16 @@ from Vector2 import Vec2
 
 class OptionFrame:
 
-    def __init__(self, root, x, y):
-        # self.master = tk.Frame(root)
-        # self.master.pack(side=tk.RIGHT)
+    def __init__(self, root, x, y, window_width, window_height, font_size):
         self.currCheckboxIndex = 0
+        self.__font_size = font_size
+        self.__window_width = window_width
+        self.__window_height = window_height
+        self.__slider_length = 30
+        self.__resize_font_size_factor = font_size / (window_width + window_height)
+        self.__resize_width_factor = self.__slider_length / window_width
         self.__width = 0
+        self.__height = 0
         self.__firstWidth = True
         self.__position = Vec2(x, y)
         self.__rectSize = Vec2(0, 0)
@@ -17,11 +22,16 @@ class OptionFrame:
         self.__offsetY = y
         self.states = []
         self.__font = None
+        self.__all_widgets = []
         self.__coordinates = []
         self.__checkboxes = []
+        self.__buttons = []
+        self.__sliders = []
+        self.__current_gui_index = 0
+        self.__gap_positions_and_size = []
+        self.__font = tkf.Font(family="Fixedsys", size=self.__font_size)
 
-    def add_checkbox(self,  text, color, size, var, **kwargs):
-        self.__font = tkf.Font(family="Fixedsys", size=size)
+    def add_checkbox(self,  text, color, var, **kwargs):
         x = self.__position.x
         y = self.__offsetY
         cmd = kwargs.get("command")
@@ -36,6 +46,7 @@ class OptionFrame:
         box.place(x=x, y=y)
         box.update()
         width = box.winfo_reqwidth()
+        self.__height += box.winfo_reqheight()
         if self.__firstWidth:
             self.__width = box.winfo_reqwidth()
             self.__firstWidth = False
@@ -45,9 +56,11 @@ class OptionFrame:
         self.__coordinates.append(y - 2)
         self.__coordinates.append(x + width)
         self.__coordinates.append(y + self.__rectSize.y)
-        self.__update_width()
+        self.__update()
         self.__checkboxes.append(box)
+        self.__all_widgets.append(box)
         self.currCheckboxIndex = len(self.__checkboxes) - 1
+        self.__current_gui_index += 1
 
     def draw(self, canvas):
         for i in range(0, len(self.__coordinates), 4):
@@ -57,13 +70,14 @@ class OptionFrame:
     def add_slider(self, start, end, orient, text, canvas):
         x = self.__position.x
         y = self.__offsetY
-        slider = tk.Scale(self.__master, from_=start, to=end, orient=orient)
+        slider = tk.Scale(self.__master, from_=start, to=end, orient=orient, sliderlength=self.__slider_length)
         slider.update()
         s_height = slider.winfo_reqheight() / 2
         s_width = slider.winfo_reqwidth()
         text = canvas.create_text(x, y + s_height, text=text, fill="black", font=self.__font, anchor=tk.NW)
         bounds = canvas.bbox(text)
         width = bounds[2] - bounds[0]
+        self.__height += bounds[3] - bounds[1]
         slider.place(x=x + width, y=y)
         if self.__firstWidth:
             self.__width = width + s_width
@@ -73,10 +87,15 @@ class OptionFrame:
         self.__coordinates.append(x + width + s_width)
         self.__coordinates.append(y + s_height * 2)
         self.__offsetY += s_height * 2
-        self.__update_width()
+        self.__update()
+        self.__sliders.append(slider)
+        self.__current_gui_index += 1
+        self.__all_widgets.append(slider)
 
     def add_gap(self, size_y):
         self.__offsetY += size_y
+        self.__gap_positions_and_size.append((self.__current_gui_index, size_y))
+        self.__height += size_y
 
     def add_button(self, text, cmd):
         x = self.__position.x
@@ -90,8 +109,12 @@ class OptionFrame:
         width_half = (self.__width - self.__position.x) / 4
         but.config(anchor=tk.N)
         but.place(x=x + width_half, y=y)
+        self.__buttons.append(but)
+        self.__current_gui_index += 1
+        self.__height += height
+        self.__all_widgets.append(but)
 
-    def __update_width(self):
+    def __update(self):
         width = self.__coordinates[2]
         for i in range(0, len(self.__coordinates), 4):
             if width < self.__coordinates[i + 2]:
@@ -103,3 +126,8 @@ class OptionFrame:
 
     def deselect(self, index):
         self.__checkboxes[index].select()
+
+    def resize(self, x, y, width, height, canvas):
+        pass
+
+

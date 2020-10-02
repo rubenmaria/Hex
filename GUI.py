@@ -1,12 +1,14 @@
 from OptionFrame import OptionFrame
 import tkinter as tk
+import math as m
 
 
 class Gui:
-
-    def __init__(self, x, y, canvas, root, game):
+    def __init__(self, x, y, width, height, canvas, root, game):
         self.__game = game
-        self.__optionFrame = OptionFrame(root, x, y)
+        self.resize_factor = 16 / 600
+        self.__optionFrame = OptionFrame(root, x, y, width, height, 16)
+        self.__root = root
         self.__canvas = canvas
         self.__isRedBeginning = tk.BooleanVar(value=False)
         self.__isBlueBeginning = tk.BooleanVar(value=False)
@@ -21,25 +23,25 @@ class Gui:
         self.__init_option_frame()
 
     def __init_option_frame(self):
-        self.__optionFrame.add_checkbox("Red: Player", "black", "16", self.__isRedPlayer,
+        self.__optionFrame.add_checkbox("Red: Player", "black", self.__isRedPlayer,
                                         command=self.processing_red_beginning_player_input)
         self.__optionFrame.select(self.__optionFrame.currCheckboxIndex)
-        self.__optionFrame.add_checkbox("Red: Computer", "black", "16", self.__isRedComputer,
+        self.__optionFrame.add_checkbox("Red: Computer", "black", self.__isRedComputer,
                                         command=self.processing_red_beginning_player_input)
         self.__optionFrame.add_slider(1, 3, tk.HORIZONTAL, "Level:", self.__canvas)
         self.__optionFrame.add_gap(20)
-        self.__optionFrame.add_checkbox("Blue: Player", "black", "16", self.__isBluePlayer)
+        self.__optionFrame.add_checkbox("Blue: Player", "black", self.__isBluePlayer)
         self.__optionFrame.select(self.__optionFrame.currCheckboxIndex)
-        self.__optionFrame.add_checkbox("Blue: Computer", "black", "16", self.__isBlueComputer)
+        self.__optionFrame.add_checkbox("Blue: Computer", "black", self.__isBlueComputer)
         self.__optionFrame.add_slider(1, 3, tk.HORIZONTAL, "Level:", self.__canvas)
         self.__optionFrame.add_gap(20)
-        self.__optionFrame.add_checkbox("Red begins", "black", "16", self.__isRedBeginning,
+        self.__optionFrame.add_checkbox("Red begins", "black",  self.__isRedBeginning,
                                         command=self.processing_beginning_color_input)
         self.__optionFrame.select(self.__optionFrame.currCheckboxIndex)
-        self.__optionFrame.add_checkbox("Blue begins", "black", "16", self.__isBlueBeginning,
+        self.__optionFrame.add_checkbox("Blue begins", "black", self.__isBlueBeginning,
                                         command=self.processing_beginning_color_input)
         self.__optionFrame.add_gap(20)
-        self.__optionFrame.add_checkbox("swap rule", "black", "16", self.__isSwapRule)
+        self.__optionFrame.add_checkbox("swap rule", "black", self.__isSwapRule)
         self.__optionFrame.select(self.__optionFrame.currCheckboxIndex)
         self.__optionFrame.add_gap(20)
         self.__optionFrame.add_button("Apply", self.__apply)
@@ -72,3 +74,6 @@ class Gui:
 
     def __apply(self):
         self.__game.apply()
+
+    def resize(self, x, y, width, height, canvas):
+        self.__optionFrame.resize(x, y, width, height, canvas)

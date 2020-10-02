@@ -39,10 +39,10 @@ class Game:
                 self.board.tiles[row][col].fillColor = "red"
                 self.occupiedByRed.append((row, col))
                 print(self.occupiedByRed)
-                if len(self.occupiedByRed) == 5:
+                """if len(self.occupiedByRed) == 3:
                     tile_from = self.occupiedByRed[0]
                     tile_to = self.occupiedByRed[1]
-                    print("distance : ", self.__ai.get_tiles_to_place_red(0))
+                    print("distance : ", self.__ai.get_tiles_to_place_red(0))"""
             else:
                 self.__canvas.itemconfig(tk.CURRENT, fill="red")
                 self.__canvas.update_idletasks()
@@ -144,3 +144,6 @@ class Game:
     def apply(self):
         self.__clear_board()
         self.playersTurn = self.playerBegins
+
+    def change_transformable(self, canvas, x, y, width):
+        self.board.change_transformable(canvas, x, y, width)
