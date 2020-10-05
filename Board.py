@@ -55,16 +55,6 @@ class Board:
                 tiles.draw(canvas)
         for el in self.__edges:
             el.draw(canvas)
-        self.__draw_rect(canvas)
-
-    def __draw_rect(self, canvas):
-        r = self.__radiusHexagon
-        delta_y = r * m.cos(m.radians(60)) + r
-        x = self.__offset_x - r
-        y = self.__offset_y - (delta_y + 4)
-        w = self.__lineEdgeWidth + 10
-        h = self.lineEdgeHeight + 10
-        canvas.create_rectangle(x, y, x + w, y + h)
 
     def clear_board(self, canvas):
         for tile_arrays in self.tiles:
@@ -102,6 +92,3 @@ class Board:
                 else:
                     self.tiles[row][col].change_transformable(canvas, w, x, y)
             offset_x += w / 2
-        self.__lineEdgeWidth = w * 19
-        self.lineEdgeHeight = r * 20
-        self.__draw_rect(canvas)

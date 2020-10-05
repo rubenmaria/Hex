@@ -9,11 +9,10 @@ WIDTH, HEIGHT = 1100, 600
 def main():
     root = tk.Tk()
     canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT, bg="white")
-    board = Board(WIDTH * 1 / 22, HEIGHT * 1/6, WIDTH * 5 / 11, canvas)
+    board = Board(WIDTH * 1 / 12, HEIGHT * 1/10, WIDTH / 2, canvas)
     game = Game(board, canvas)
     game.mouse_input_config()
-    gui = Gui(WIDTH * 1 / 22 + board.width, board.offsetYRect, WIDTH, HEIGHT , canvas, root, game)
-    gui.draw()
+    gui = Gui(canvas, root, game)
     game.draw()
     canvas.pack()
 
@@ -23,8 +22,7 @@ def main():
             return
         canvas.delete(tk.ALL)
         canvas.config(width=width, height=height)
-        game.change_transformable(canvas, width * 1 / 22, height * 1/6, width * 5 / 11)
-        gui.resize(width * 1 / 22 + board.width, board.offsetYRect, width, height, canvas)
+        game.change_transformable(canvas, width * 1 / 12, height * 1/10, width / 2 + width / 10)
 
     canvas.update_idletasks()
     canvas.after(1)
