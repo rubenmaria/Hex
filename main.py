@@ -8,6 +8,7 @@ WIDTH, HEIGHT = 1100, 600
 
 def main():
     root = tk.Tk()
+    root.title("Hex")
     canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT, bg="white")
     board = Board(WIDTH * 1 / 12, HEIGHT * 1/10, WIDTH / 2, canvas)
     game = Game(board, canvas)
