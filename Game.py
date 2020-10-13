@@ -2,6 +2,7 @@ import tkinter as tk
 from AI import Ai
 from tkinter import messagebox
 
+
 class Game:
     def __init__(self, board, canvas):
         self.playersTurn = "red"
@@ -32,12 +33,13 @@ class Game:
             if self.playersTurn == "red":
                 if self.isRedComputer:
                     return
-                self.__canvas.itemconfig(tk.CURRENT, fill="blue")
+                self.__canvas.itemconfig(tk.CURRENT, fill="black")
                 self.__canvas.update_idletasks()
                 self.__canvas.after(200)
                 self.__canvas.itemconfig(tk.CURRENT, fill="red")
                 self.playersTurn = "blue"
                 if self.is_red_winner():
+                    print("Farbe = ", self.__canvas.itemcget(tk.CURRENT, 'fill'))
                     messagebox.showinfo("Game Over", "Red has won!")
                     self.apply()
                 index_dash = cur_tag.find('-')
@@ -46,30 +48,33 @@ class Game:
                 col = int(cur_tag[index_dash + 1:index_space])
                 self.board.tiles[row][col].fillColor = "red"
                 self.occupiedByRed.append((row, col))
-                print(self.occupiedByRed)
-                """if len(self.occupiedByRed) == 3:
+                # print(self.occupiedByRed)
+                """if len(self.occupiedByRed) == 1:
                     tile_from = self.occupiedByRed[0]
                     tile_to = self.occupiedByRed[1]
-                    print("distance : ", self.__ai.get_tiles_to_place_red(0))"""
+                    print("distance : ", self.__ai.get_value_red())"""
             else:
                 if self.isBlueComputer:
                     return
-                self.__canvas.itemconfig(tk.CURRENT, fill="red")
+                self.__canvas.itemconfig(tk.CURRENT, fill="black")
                 self.__canvas.update_idletasks()
                 self.__canvas.after(200)
                 self.__canvas.itemconfig(tk.CURRENT, fill="blue")
                 self.playersTurn = "red"
                 if self.is_blue_winner():
-                    messagebox.showinfo("Game Over", "Red has won!")
+                    messagebox.showinfo("Game Over", "Blue has won!")
                     self.apply()
+                    print("blue")
                 index_dash = cur_tag.find('-')
                 index_space = cur_tag.find(' ')
                 row = int(cur_tag[0:index_dash])
                 col = int(cur_tag[index_dash + 1:index_space])
                 self.board.tiles[row][col].fillColor = "blue"
                 self.occupiedByBlue.append((row, col))
+                if len(self.occupiedByBlue) == 8:
+                    print("distance : ", self.__ai.hex_dijkstra_b())
                 # self.__ai.distance_to_all(row, col, "red")
-                print(self.occupiedByBlue)
+                # print(self.occupiedByBlue)
 
     def is_red_winner(self):
         for row in range(11):
