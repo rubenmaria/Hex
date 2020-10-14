@@ -49,10 +49,10 @@ class Game:
                 self.board.tiles[row][col].fillColor = "red"
                 self.occupiedByRed.append((row, col))
                 # print(self.occupiedByRed)
-                """if len(self.occupiedByRed) == 1:
+                if len(self.occupiedByRed) == 5:
                     tile_from = self.occupiedByRed[0]
                     tile_to = self.occupiedByRed[1]
-                    print("distance : ", self.__ai.get_value_red())"""
+                    print("distance : ", self.__ai.hex_dijkstra_r())
             else:
                 if self.isBlueComputer:
                     return
@@ -71,7 +71,7 @@ class Game:
                 col = int(cur_tag[index_dash + 1:index_space])
                 self.board.tiles[row][col].fillColor = "blue"
                 self.occupiedByBlue.append((row, col))
-                if len(self.occupiedByBlue) == 8:
+                if len(self.occupiedByBlue) == 2:
                     print("distance : ", self.__ai.hex_dijkstra_b())
                 # self.__ai.distance_to_all(row, col, "red")
                 # print(self.occupiedByBlue)
