@@ -82,12 +82,6 @@ class Gui:
             self.__menuBar.delete(4)
             self.__apply_changes_drawn = False
 
-        if self.__isRedBeginning.get():
-            self.__game.playerBegins = "red"
-        else:
-            self.__game.playerBegins = "blue"
-        self.__game.isSwapRule = self.__isSwapRule.get()
-
     def process_blue(self):
         if self.__currentBlueSettings[0] != self.__isBlueComputer.get() and not self.__apply_changes_drawn:
             self.__menuBar.add_command(label="Apply Changes", command=self.__apply)
@@ -106,9 +100,6 @@ class Gui:
         if not self.__blue_changed and not self.__red_changed and not self.__game_changed:
             self.__menuBar.delete(4)
             self.__apply_changes_drawn = False
-
-        self.__game.blueComputerLevel = self.__blueComputerLevel.get()
-        self.__game.isBlueComputer = self.__isBlueComputer.get()
 
     def process_red(self):
         if self.__currentRedSettings[0] != self.__isRedComputer.get() and not self.__apply_changes_drawn:
@@ -129,9 +120,6 @@ class Gui:
             self.__menuBar.delete(4)
             self.__apply_changes_drawn = False
 
-        self.__game.redComputerLevel = self.__redComputerLevel.get()
-        self.__game.isRedComputer = self.__isRedComputer.get()
-
     def __apply(self):
         self.__menuBar.delete(4)
         self.__apply_changes_drawn = False
@@ -144,4 +132,16 @@ class Gui:
         self.__currentBlueSettings[1] = self.__blueComputerLevel.get()
         self.__currentRedSettings[0] = self.__isRedComputer.get()
         self.__currentRedSettings[1] = self.__redComputerLevel.get()
+
+        self.__game.redComputerLevel = self.__redComputerLevel.get()
+        self.__game.isRedComputer = self.__isRedComputer.get()
+        self.__game.blueComputerLevel = self.__blueComputerLevel.get()
+        self.__game.isBlueComputer = self.__isBlueComputer.get()
+
+        if self.__isRedBeginning.get():
+            self.__game.playerBegins = "red"
+        else:
+            self.__game.playerBegins = "blue"
+        self.__game.isSwapRule = self.__isSwapRule.get()
+
         self.__game.apply()

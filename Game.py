@@ -1,6 +1,7 @@
 import tkinter as tk
 from AI import Ai
 from tkinter import messagebox
+import random as r
 
 
 class Game:
@@ -13,15 +14,50 @@ class Game:
         self.isRedComputer = False
         self.isBlueComputer = False
         self.board = board
-        self.occupiedByBlue = list()
-        self.occupiedByRed = list()
+        self.occupiedByBlue = set()
+        self.occupiedByRed = set()
         self.__canvas = canvas
         self.__destination_length = 10
         self.__visited = set()
         self.__ai = Ai(board)
+        self.__update_ai()
 
     def draw(self):
         self.board.draw(self.__canvas)
+
+    def __update_ai(self):
+
+        if self.playersTurn == "red" and self.isRedComputer:
+            while True:
+                rand_row = r.randint(0, 10)
+                rand_col = r.randint(0, 10)
+                if(not (rand_row, rand_col) in self.occupiedByRed
+                        and not (rand_row, rand_col) in self.occupiedByBlue):
+                    break
+            self.board.tiles[rand_row][rand_col].set_color(self.__canvas, "red")
+            self.playersTurn = "blue"
+            self.occupiedByRed.add((rand_row, rand_col))
+            if self.is_red_winner():
+                messagebox.showinfo("Game Over", "Red has won!")
+                self.apply()
+                print("blue")
+
+        elif self.playersTurn == "blue" and self.isBlueComputer:
+            while True:
+                rand_row = r.randint(0, 10)
+                rand_col = r.randint(0, 10)
+                if (not (rand_row, rand_col) in self.occupiedByRed
+                        and not (rand_row, rand_col) in self.occupiedByBlue):
+                    break
+            self.board.tiles[rand_row][rand_col].set_color(self.__canvas, "blue")
+            self.playersTurn = "red"
+            self.occupiedByRed.add((rand_row, rand_col))
+            if self.is_blue_winner():
+                messagebox.showinfo("Game Over", "Blue has won!")
+                self.apply()
+                print("blue")
+
+        self.__canvas.after(1, self.__update_ai)
 
     def mouse_input_config(self):
         self.__canvas.bind("<Button-1>", self.__button1_callback)
@@ -33,9 +69,6 @@ class Game:
             if self.playersTurn == "red":
                 if self.isRedComputer:
                     return
-                self.__canvas.itemconfig(tk.CURRENT, fill="black")
-                self.__canvas.update_idletasks()
-                self.__canvas.after(200)
                 self.__canvas.itemconfig(tk.CURRENT, fill="red")
                 self.playersTurn = "blue"
                 if self.is_red_winner():
@@ -47,18 +80,14 @@ class Game:
                 row = int(cur_tag[0:index_dash])
                 col = int(cur_tag[index_dash + 1:index_space])
                 self.board.tiles[row][col].fillColor = "red"
-                self.occupiedByRed.append((row, col))
+                self.occupiedByRed.add((row, col))
                 # print(self.occupiedByRed)
-                if len(self.occupiedByRed) == 5:
-                    tile_from = self.occupiedByRed[0]
-                    tile_to = self.occupiedByRed[1]
-                    print("distance : ", self.__ai.hex_dijkstra_r())
+                if len(self.occupiedByRed) == 3:
+                    occupied_tiles = self.occupiedByRed | self.occupiedByBlue
+                    print("active_region : ", len(self.__ai.get_active_region(occupied_tiles)))
             else:
                 if self.isBlueComputer:
                     return
-                self.__canvas.itemconfig(tk.CURRENT, fill="black")
-                self.__canvas.update_idletasks()
-                self.__canvas.after(200)
                 self.__canvas.itemconfig(tk.CURRENT, fill="blue")
                 self.playersTurn = "red"
                 if self.is_blue_winner():
@@ -70,9 +99,9 @@ class Game:
                 row = int(cur_tag[0:index_dash])
                 col = int(cur_tag[index_dash + 1:index_space])
                 self.board.tiles[row][col].fillColor = "blue"
-                self.occupiedByBlue.append((row, col))
-                if len(self.occupiedByBlue) == 2:
-                    print("distance : ", self.__ai.hex_dijkstra_b())
+                self.occupiedByBlue.add((row, col))
+                if len(self.occupiedByBlue) == 4:
+                    print("distance : ", self.__ai.get_value_blue())
                 # self.__ai.distance_to_all(row, col, "red")
                 # print(self.occupiedByBlue)
 
@@ -158,6 +187,8 @@ class Game:
         self.board.clear_board(self.__canvas)
 
     def apply(self):
+        self.occupiedByBlue.clear()
+        self.occupiedByRed.clear()
         self.__clear_board()
         self.playersTurn = self.playerBegins
 

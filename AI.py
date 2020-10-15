@@ -163,9 +163,52 @@ class Ai:
     def get_value_red(self):
         red = self.hex_dijkstra_r()
         blue = self.hex_dijkstra_b()
-        return red - blue
+        return blue - red
 
     def get_value_blue(self):
         red = self.hex_dijkstra_r()
         blue = self.hex_dijkstra_b()
-        return blue - red
+        return red - blue
+
+    def get_active_region(self, occupied_tiles):
+        active_region = set()
+        neighbour_positions = list()
+
+        for tile in occupied_tiles:
+            neighbour_positions.clear()
+            x = tile[0]
+            y = tile[1]
+            neighbour_positions.append((x - 1, y))
+            neighbour_positions.append((x + 1, y))
+            neighbour_positions.append((x - 1, y + 1))
+            neighbour_positions.append((x, y + 1))
+            neighbour_positions.append((x - 1, y))
+            neighbour_positions.append((x + 1, y - 1))
+            neighbour_positions.append((x, y - 1))
+            neighbour_positions.append((x, y - 2))
+            neighbour_positions.append((x + 1, y - 2))
+            neighbour_positions.append((x + 2, y - 2))
+            neighbour_positions.append((x + 2, y - 1))
+            neighbour_positions.append((x + 2, y))
+            neighbour_positions.append((x + 1, y + 1))
+            neighbour_positions.append((x, y + 2))
+            neighbour_positions.append((x - 1, y + 2))
+            neighbour_positions.append((x - 2, y + 2))
+            neighbour_positions.append((x - 2, y + 1))
+            neighbour_positions.append((x - 2, y))
+            neighbour_positions.append((x - 1, y - 1))
+            for pos in neighbour_positions:
+                if (self.__is_pos_on_board(pos) and pos not in active_region
+                        and pos not in occupied_tiles):
+                    active_region.add(pos)
+        for t in active_region:
+            tile = self.__board.tiles[t[0]][t[1]]
+            self.__write_distance(tile, 1)
+        return active_region
+
+    def __is_pos_on_board(self, position):
+        if (position[0] < 0 or position[1] < 0 or
+                position[0] > self.__board.rowLength - 1 or
+                position[1] > self.__board.columnLength - 1):
+            return False
+        return True
