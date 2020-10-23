@@ -16,6 +16,8 @@ def main():
     gui = Gui(canvas, root, game)
     game.draw()
     canvas.pack()
+    root.bind("<Control-z>", game.undo)
+    root.bind("<Control-y>", game.redo)
 
     def resizer(event):
         width, height = event.width - 4, event.height - 4
