@@ -2,81 +2,71 @@ import copy
 import math as m
 from HexNode import HexNode
 import copy as c
-
-
-class VirtualTile:
-    def __init__(self, row, column, color):
-        self.row = row
-        self.column = column
-        self.color = color
+import random as r
 
 
 class Ai:
     def __init__(self, board, canvas, occupied_tiles):
         self.__board = board
         self.occupied_tiles = occupied_tiles
-        self.__visited_b = set()
-        self.__visited_r = set()
-        self.__graph = [[HexNode for j in range(13)] for i in range(13)]
+        self.graph_blue = [[HexNode for j in range(13)] for i in range(13)]
+        self.graph_red = [[HexNode for j in range(13)] for i in range(13)]
         self.__destination_length = 10
         self.__visited = set()
-        self.__to_examine_red_d = set()
-        self.__to_examine_blue_d = set()
-        self.__destination_distance_b = list()
-        self.__destination_distance_r = list()
-        self.moves = list()
-        self.moves_score = list()
+        self.__to_examine_red_starting = set()
+        self.__to_examine_blue_starting = set()
         self.__canvas = canvas
+        self.setup_dijkstra_blue()
+        self.setup_dijkstra_red()
 
     def __write_distance(self, tile, distance):
-        if tile.text == "":
+        if not tile.is_text:
             tile.add_text(str(distance), self.__board.canvas, 'black')
+        else:
+            tile.change_text(self.__board.canvas, str(distance))
 
-    def __setup_dijkstra_blue(self, tiles):
-        self.__visited_b.clear()
-        self.__to_examine_blue_d.clear()
+    def delete_all_writing(self):
+        self.__board.clear_writing(self.__canvas)
+
+    def setup_dijkstra_blue(self):
         for x in range(13):
             for y in range(13):
                 if (x == 0 or x == 12) and (y == 0 or y == 12):
-                    self.__graph[x][y] = HexNode("wall", x, y)
+                    self.graph_blue[x][y] = HexNode("wall", x, y)
                 elif x == 0:
-                    self.__graph[x][y] = HexNode("source", x, y)
-                    self.__to_examine_blue_d.add(HexNode("source", x, y))
+                    self.graph_blue[x][y] = HexNode("source", x, y)
+                    self.__to_examine_blue_starting.add(HexNode("source", x, y))
                 elif x == 12:
-                    self.__graph[x][y] = HexNode("destination", x, y)
+                    self.graph_blue[x][y] = HexNode("destination", x, y)
                 elif y == 0 or y == 12:
-                    self.__graph[x][y] = HexNode("wall", x, y)
+                    self.graph_blue[x][y] = HexNode("wall", x, y)
                 else:
-                    x_tile = x - 1
-                    y_tile = y - 1
-                    if tiles[x_tile][y_tile].color == "blue":
-                        self.__graph[x][y] = HexNode("friendly", x, y)
-                    elif tiles[x_tile][y_tile].color == "red":
-                        self.__graph[x][y] = HexNode("enemy", x, y)
-                    else:
-                        self.__graph[x][y] = HexNode("impartial", x, y)
+                    self.graph_blue[x][y] = HexNode("impartial", x, y)
 
-    def hex_dijkstra_b(self, tiles):
-        vertex_amount = self.__board.rowLength * self.__board.columnLength
-        self.__setup_dijkstra_blue(tiles)
+    def hex_dijkstra_b(self, graph):
+        destination_distance = list()
+        visited = set()
+        to_examine = c.copy(self.__to_examine_blue_starting)
+        # self.delete_all_writing() #debugging
 
-        while len(self.__visited_b) < vertex_amount:
-            node = self.get_min_dist_node(self.__to_examine_blue_d)
+        while True:
+            node = self.get_min_dist_node(to_examine, visited)
             if node is None:
                 break
-            self.__to_examine_blue_d.remove(node)
-            self.__visited_b.add(node)
-            self.__update_dist_of_neighbour_b(node, tiles)
+            """row = node.x - 1
+            col = node.y - 1
+            if self.__is_pos_on_board((row, col)):
+                self.__write_distance(self.__board.tiles[row][col], node.distance) #debugging"""
+            to_examine.remove(node)
+            visited.add(node)
+            self.__update_dist_of_neighbour_b(node, graph, destination_distance, to_examine, visited)
+            if node.nodeType != "source":
+                node.distance = m.inf
+        if len(destination_distance) == 0:
+            return 1000
+        return min(destination_distance)
 
-        min_distance = m.inf
-
-        for distance in self.__destination_distance_b:
-            if min_distance > distance:
-                min_distance = distance
-
-        return min_distance
-
-    def __update_dist_of_neighbour_b(self, node, tiles):
+    def __update_dist_of_neighbour_b(self, node, graph, destination_distance, to_examine, visited):
         x = node.x
         y = node.y
         neighbour_positions = list()
@@ -87,71 +77,65 @@ class Ai:
         for n_pos in neighbour_positions:
             row = n_pos[0]
             col = n_pos[1]
-            neighbour_node = self.__graph[row][col]
+            neighbour_node = graph[row][col]
             if row < 0 or row > 12:
                 continue
             if col < 0 or col > 12:
                 continue
             if ((neighbour_node.nodeType == "impartial" or neighbour_node.nodeType == "friendly")
-                    and not (neighbour_node in self.__visited_b)
+                    and not (neighbour_node in visited)
                     and neighbour_node.weight + node.distance < neighbour_node.distance):
                 neighbour_node.distance = neighbour_node.weight + node.distance
-                self.__to_examine_blue_d.add(neighbour_node)
+                to_examine.add(neighbour_node)
+                # neighbour_node.print()
             if neighbour_node.nodeType == "destination":
-                self.__destination_distance_b.append(node.distance)
+                destination_distance.append(node.distance)
 
-    def get_min_dist_node(self, to_examine):
-        min_number = m.inf
-        min_node = None
-        for node in to_examine:
-            if node.distance < min_number and node not in self.__visited_b:
-                min_number = node.distance
-                min_node = node
-        return min_node
+    def get_min_dist_node(self, to_examine, visited):
+        if len(to_examine) == 0:
+            return None
+        return min(to_examine)
 
-    def __setup_dijkstra_r(self, tiles):
-        self.__visited_r.clear()
-        self.__to_examine_red_d.clear()
+    def setup_dijkstra_red(self):
         for x in range(13):
             for y in range(13):
                 if (x == 0 or x == 12) and (y == 0 or y == 12):
-                    self.__graph[x][y] = HexNode("wall", x, y)
+                    self.graph_red[x][y] = HexNode("wall", x, y)
                 elif y == 0:
-                    self.__graph[x][y] = HexNode("source", x, y)
-                    self.__to_examine_red_d.add(HexNode("source", x, y))
+                    self.graph_red[x][y] = HexNode("source", x, y)
+                    self.__to_examine_red_starting.add(HexNode("source", x, y))
                 elif y == 12:
-                    self.__graph[x][y] = HexNode("destination", x, y)
+                    self.graph_red[x][y] = HexNode("destination", x, y)
                 elif x == 0 or x == 12:
-                    self.__graph[x][y] = HexNode("wall", x, y)
+                    self.graph_red[x][y] = HexNode("wall", x, y)
                 else:
-                    x_tile = x - 1
-                    y_tile = y - 1
-                    if tiles[x_tile][y_tile].color == "red":
-                        self.__graph[x][y] = HexNode("friendly", x, y)
-                    elif tiles[x_tile][y_tile].color == "blue":
-                        self.__graph[x][y] = HexNode("enemy", x, y)
-                    else:
-                        self.__graph[x][y] = HexNode("impartial", x, y)
+                    self.graph_red[x][y] = HexNode("impartial", x, y)
 
-    def hex_dijkstra_r(self, tiles):
+    def hex_dijkstra_r(self, graph):
+        destination_distance = list()
+        # self.delete_all_writing() #debugging
+        visited = set()
+        to_examine = c.copy(self.__to_examine_red_starting)
         vertex_amount = self.__board.rowLength * self.__board.columnLength
-        self.__setup_dijkstra_r(tiles)
-        while len(self.__visited_r) < vertex_amount:
-            node = self.get_min_dist_node(self.__to_examine_red_d)
+
+        while True:
+            node = self.get_min_dist_node(to_examine, visited)
             if node is None:
                 break
-            self.__to_examine_red_d.remove(node)
-            self.__visited_r.add(node)
-            self.__update_dist_of_neighbour_r(node, tiles)
+            row = node.x - 1
+            col = node.y - 1
+            """if self.__is_pos_on_board((row, col)):
+                self.__write_distance(self.__board.tiles[row][col], node.distance) #debugging"""
+            to_examine.remove(node)
+            visited.add(node)
+            self.__update_dist_of_neighbour_r(node, graph, destination_distance, to_examine, visited)
+            if node.nodeType != "source":
+                node.distance = m.inf
+        if len(destination_distance) == 0:
+            return 1000
+        return min(destination_distance)
 
-        min_distance = m.inf
-
-        for distance in self.__destination_distance_r:
-            if min_distance > distance:
-                min_distance = distance
-        return min_distance
-
-    def __update_dist_of_neighbour_r(self, node, tiles):
+    def __update_dist_of_neighbour_r(self, node, graph, destination_distance, to_examine, visited):
         x = node.x
         y = node.y
         neighbour_positions = list()
@@ -162,29 +146,31 @@ class Ai:
         for n_pos in neighbour_positions:
             row = n_pos[0]
             col = n_pos[1]
-            neighbour_node = self.__graph[row][col]
+            neighbour_node = graph[row][col]
             if row < 0 or row > 12:
                 continue
             if col < 0 or col > 12:
                 continue
             if ((neighbour_node.nodeType == "impartial" or neighbour_node.nodeType == "friendly")
-                    and not (neighbour_node in self.__visited_b)
+                    and not (neighbour_node in visited)
                     and neighbour_node.weight + node.distance < neighbour_node.distance):
                 neighbour_node.distance = neighbour_node.weight + node.distance
-                self.__to_examine_red_d.add(neighbour_node)
-                tile = tiles[row - 1][col - 1]
-                # self.__write_distance(tile, neighbour_node.distance)
+                to_examine.add(neighbour_node)
             if neighbour_node.nodeType == "destination":
-                self.__destination_distance_r.append(node.distance)
+                destination_distance.append(node.distance)
 
-    def get_value_red(self, tiles):
-        red = self.hex_dijkstra_r(tiles)
-        blue = self.hex_dijkstra_b(tiles)
+    def get_value_red(self, graph_red, graph_blue):
+        red = self.hex_dijkstra_r(graph_red)
+        blue = self.hex_dijkstra_b(graph_blue)
         return blue - red
 
-    def get_value_blue(self, tiles):
-        red = self.hex_dijkstra_r(tiles)
-        blue = self.hex_dijkstra_b(tiles)
+    def get_value_blue(self, graph_blue, graph_red):
+        red = self.hex_dijkstra_r(graph_red)
+        if red == m.inf:
+            red = 1000
+        blue = self.hex_dijkstra_b(graph_blue)
+        if blue == m.inf:
+            blue = 1000
         return red - blue
 
     def get_active_region(self, occupied_tiles):
@@ -230,170 +216,257 @@ class Ai:
             return False
         return True
 
-    def get_value_moves(self, start_color, maximizing):
-        tiles = self.get_virtual_tiles()
+    def get_value_moves(self, start_color, moves):
+        graph_blue = self.graph_blue
+        graph_red = self.graph_red
         color = start_color
-        for move in self.moves:
+        for move in moves:
             if color == "red":
-                tiles[move[0]][move[1]].color = "red"
+                g_pos = self.from_tile_to_graph(move)
+                graph_blue[g_pos[0]][g_pos[1]].set_color("enemy", "red")
+                graph_red[g_pos[0]][g_pos[1]].set_color("friendly", "red")
                 color = "blue"
             else:
-                tiles[move[0]][move[1]].color = "blue"
+                g_pos = self.from_tile_to_graph(move)
+                graph_blue[g_pos[0]][g_pos[1]].set_color("friendly", "blue")
+                graph_red[g_pos[0]][g_pos[1]].set_color("enemy", "blue")
                 color = "red"
         if start_color == "red":
-            value = self.get_value_red(tiles)
+            value = self.get_value_red(graph_red, graph_blue)
         else:
-            value = self.get_value_blue(tiles)
+            value = self.get_value_blue(graph_blue, graph_red)
+        self.clear_moves(moves)
         return value
 
-    def get_region_moves(self):
-        moves_set = set(self.moves)
+    def clear_moves(self, moves):
+        for move in moves:
+            g_pos = self.from_tile_to_graph(move)
+            self.graph_red[g_pos[0]][g_pos[1]].set_color("impartial", "white")
+            self.graph_blue[g_pos[0]][g_pos[1]].set_color("impartial", "white")
+
+    def from_graph_to_tile(self, graph_position):
+        return graph_position[0] - 1, graph_position[1] - 1
+
+    def from_tile_to_graph(self, tile_position):
+        return tile_position[0] + 1, tile_position[1] + 1
+
+    def get_region_moves(self, moves):
+        moves_set = set(moves)
         tiles = moves_set | self.occupied_tiles
         return self.get_active_region(tiles)
 
-    def is_game_over_moves(self, start_color):
-        if len(self.moves) + len(self.occupied_tiles) < 21:
-            return
-        tiles = self.get_virtual_tiles()
+    def is_game_over_moves(self, start_color, moves):
+        if len(moves) + len(self.occupied_tiles) < 21:
+            return "none"
+        graph_red = self.graph_red
+        graph_blue = self.graph_blue
         color = start_color
-        for move in self.moves:
+        for move in moves:
             if color == "red":
-                tiles[move[0]][move[1]].color = "red"
+                graph_blue[move[0] + 1][move[1] + 1].set_color("enemy", "red")
+                graph_red[move[0] + 1][move[1] + 1].set_color("friendly", "red")
                 color = "blue"
             else:
-                tiles[move[0]][move[1]].color = "blue"
+                graph_blue[move[0] + 1][move[1] + 1].set_color("friendly", "blue")
+                graph_red[move[0] + 1][move[1] + 1].set_color("enemy", "blue")
                 color = "red"
-        return self.is_red_winner(tiles) or self.is_blue_winner(tiles)
+        if self.is_red_winner(graph_red):
+            self.clear_moves(moves)
+            return "red"
+        if self.is_blue_winner(graph_blue):
+            self.clear_moves(moves)
+            return "blue"
+        self.clear_moves(moves)
+        return "none"
 
-    def minimax(self, color, depth, alpha, beta, maximizing):
-        if depth == 0 or self.is_game_over_moves(color):
-            val = self.get_value_moves(color, maximizing)
-            self.moves.pop()
-            if len(self.moves_score) > 1:
-                self.moves_score.pop()
+    def make_move(self, board, color, row, col):
+        board[row][col].color = color
+
+    def monte_carlo(self, color):
+        active_region = self.get_active_region(self.occupied_tiles)
+        virtual_occupied = c.deepcopy(self.occupied_tiles)
+        best_score = -m.inf
+        for move in active_region:
+            board = self.get_virtual_tiles()
+            virtual_occupied.add((move[0], move[1]))
+            self.make_move(board, color, move[0], move[1])
+            value = self.get_monte_score(board, color, virtual_occupied, 2000)
+            print(value)
+            if best_score < value:
+                best_score = value
+                best_move = move
+        return best_move
+
+    def get_monte_score(self, board, color, virtual_occupied, amount=1000):
+        score = 0
+        for i in range(amount):
+            score += self.play_game_randomly(board, color, virtual_occupied)
+        return score
+
+    def play_game_randomly(self, board, color, virtual_occupied, future=10):
+        if color == "red":
+            current_color = "blue"
+        else:
+            current_color = "red"
+        occupied = c.deepcopy(virtual_occupied)
+        temp_board = c.deepcopy(board)
+        for i in range(future):
+            while True:
+                row = r.randint(0, 10)
+                col = r.randint(0, 10)
+                if (row, col) not in occupied:
+                    occupied.add((row, col))
+                    temp_board[row][col].color = current_color
+                    if current_color == "blue":
+                        current_color = "red"
+                    else:
+                        current_color = "blue"
+                    break
+            """if self.is_red_winner(temp_board):
+                if color == "red":
+                    return 10
+                return -10
+            elif self.is_blue_winner(temp_board):
+                if color == "blue":
+                    return 10
+                return -10"""
+        if color == "red":
+            return self.get_value_red(temp_board)
+        return self.get_value_blue(temp_board)
+
+    def minimax(self, moves, color, depth, max_depth, alpha, beta, maximizing, winning_move):
+        if len(winning_move) > 0:
+            return winning_move[0]
+
+        winner = self.is_game_over_moves(color, moves)
+        if depth == 0 or winner != "none":
+
+            val = self.get_value_moves(color, moves)
+            if winner == color:
+                for move in moves:
+                    mov = list()
+                    mov.append(move)
+                    if self.is_game_over_moves(color, mov) == color:
+                        winning_move.append(move)
+                        return winning_move[0]
+            moves.pop()
             return val
-
-        active_region = self.get_region_moves()
-        #print(len(active_region))
+        best_move = None
+        active_region = self.get_region_moves(moves)
         if maximizing:
             max_eval = -m.inf
             for to_examine in active_region:
-                self.moves.append(to_examine)
-                val = self.minimax(color, depth - 1, alpha, beta, False)
-                self.moves_score.append((to_examine, val))
-                if depth == 3:
-                    print(to_examine, "score= ", val)
-                max_eval = max(max_eval, val)
-                alpha = max(alpha, val)
-
+                moves.append(to_examine)
+                val = self.minimax(moves, color, depth - 1, max_depth, alpha, beta, False, winning_move)
+                if len(winning_move) > 0:
+                    return winning_move[0]
+                if max_eval < val:
+                    max_eval = val
+                    if depth == max_depth:
+                        best_move = to_examine
+                alpha = max(alpha, max_eval)
+                if depth == max_depth:
+                    moves.clear()
                 if beta <= alpha:
                     break
-            print(self.moves)
-            if len(self.moves) > 1:
-                self.moves.pop()
-            if len(self.moves_score) > 1:
-                self.moves_score.pop()
-            print("max= ", max_eval)
+
+            if depth == max_depth:
+                if best_move is not None:
+                    return best_move
+            moves.pop()
             return max_eval
         else:
             min_eval = +m.inf
             for to_examine in active_region:
-                self.moves.append(to_examine)
-                val = self.minimax(color, depth - 1, alpha, beta, True)
-                self.moves_score.append((to_examine, val))
-                min_eval = min(min_eval, val)
-                beta = min(beta, val)
+                moves.append(to_examine)
+                val = self.minimax(moves, color, depth - 1, max_depth, alpha, beta, True, winning_move)
+                if len(winning_move) > 0:
+                    return winning_move[0]
+                if min_eval > val:
+                    min_eval = val
+                beta = min(beta, min_eval)
                 if beta <= alpha:
                     break
-            if len(self.moves) > 1:
-                self.moves.pop()
-            if len(self.moves_score) > 1:
-                self.moves_score.pop()
-            print("min= ", min_eval)
+            moves.pop()
             return min_eval
 
-    def is_red_winner(self, tiles):
+    def is_red_winner(self, graph):
         for row in range(11):
-            self.__visited.clear()
-            if self.__is_tile_connected_red(row, 0, tiles):
-                self.__visited.clear()
+            if self.__is_tile_connected_red(row, 0, graph, set()):
                 return True
-        self.__visited.clear()
         return False
 
-    def is_blue_winner(self, tiles):
+    def is_blue_winner(self, graph):
         for col in range(11):
-            self.__visited.clear()
-            if self.__is_tile_connected_blue(0, col, tiles):
-                self.__visited.clear()
+            if self.__is_tile_connected_blue(0, col, graph, set()):
                 return True
-        self.__visited.clear()
         return False
 
-    def __is_tile_connected_red(self, row, col, tiles):
-        self.__visited.add((row, col))
+    def __is_tile_connected_red(self, row, col, graph, visited):
+        visited.add((row, col))
         if col > self.__destination_length:
             return True
         if row > self.__destination_length or col < 0 or row < 0:
             return False
-        tile = tiles[row][col]
+        g_pos = self.from_tile_to_graph((row, col))
+        tile = graph[g_pos[0]][g_pos[1]]
         t_color = tile.color
         if t_color != 'red':
             return False
-        if not ((row, col - 1) in self.__visited):
-            if self.__is_tile_connected_red(row, col - 1, tiles):
+        if not ((row, col - 1) in visited):
+            if self.__is_tile_connected_red(row, col - 1, graph, visited):
                 return True
-        if not ((row + 1, col - 1) in self.__visited):
-            if self.__is_tile_connected_red(row + 1, col - 1, tiles):
+        if not ((row + 1, col - 1) in visited):
+            if self.__is_tile_connected_red(row + 1, col - 1, graph, visited):
                 return True
-        if not ((row + 1, col) in self.__visited):
-            if self.__is_tile_connected_red(row + 1, col, tiles):
+        if not ((row + 1, col) in visited):
+            if self.__is_tile_connected_red(row + 1, col, graph, visited):
                 return True
-        if not ((row - 1, col) in self.__visited):
-            if self.__is_tile_connected_red(row - 1, col, tiles):
+        if not ((row - 1, col) in visited):
+            if self.__is_tile_connected_red(row - 1, col, graph, visited):
                 return True
-        if not ((row - 1, col + 1) in self.__visited):
-            if self.__is_tile_connected_red(row - 1, col + 1, tiles):
+        if not ((row - 1, col + 1) in visited):
+            if self.__is_tile_connected_red(row - 1, col + 1, graph, visited):
                 return True
-        if not ((row, col + 1) in self.__visited):
-            if self.__is_tile_connected_red(row, col + 1, tiles):
+        if not ((row, col + 1) in visited):
+            if self.__is_tile_connected_red(row, col + 1, graph, visited):
                 return True
         return False
 
-    def __is_tile_connected_blue(self, row, col, tiles):
-        self.__visited.add((row, col))
+    def __is_tile_connected_blue(self, row, col, graph, visited):
+        visited.add((row, col))
         if row > self.__destination_length:
             return True
         if col > self.__destination_length or row < 0 or col < 0:
             return False
-        tile = tiles[row][col]
+        g_pos = self.from_tile_to_graph((row, col))
+        tile = graph[g_pos[0]][g_pos[1]]
         t_color = tile.color
         if t_color != 'blue':
             return False
-        if not ((row, col - 1) in self.__visited):
-            if self.__is_tile_connected_blue(row, col - 1, tiles):
+        if not ((row, col - 1) in visited):
+            if self.__is_tile_connected_blue(row, col - 1, graph, visited):
                 return True
-        if not ((row + 1, col - 1) in self.__visited):
-            if self.__is_tile_connected_blue(row + 1, col - 1, tiles):
+        if not ((row + 1, col - 1) in visited):
+            if self.__is_tile_connected_blue(row + 1, col - 1, graph, visited):
                 return True
-        if not ((row + 1, col) in self.__visited):
-            if self.__is_tile_connected_blue(row + 1, col, tiles):
+        if not ((row + 1, col) in visited):
+            if self.__is_tile_connected_blue(row + 1, col, graph, visited):
                 return True
-        if not ((row - 1, col) in self.__visited):
-            if self.__is_tile_connected_blue(row - 1, col, tiles):
+        if not ((row - 1, col) in visited):
+            if self.__is_tile_connected_blue(row - 1, col, graph, visited):
                 return True
-        if not ((row - 1, col + 1) in self.__visited):
-            if self.__is_tile_connected_blue(row - 1, col + 1, tiles):
+        if not ((row - 1, col + 1) in visited):
+            if self.__is_tile_connected_blue(row - 1, col + 1, graph, visited):
                 return True
-        if not ((row, col + 1) in self.__visited):
-            if self.__is_tile_connected_blue(row, col + 1, tiles):
+        if not ((row, col + 1) in visited):
+            if self.__is_tile_connected_blue(row, col + 1, graph, visited):
                 return True
         return False
 
-    def get_virtual_tiles(self):
-        virtual_tiles = [[VirtualTile for j in range(11)] for k in range(11)]
-        for row in range(11):
-            for column in range(11):
-                color = self.__board.tiles[row][column].fillColor
-                virtual_tiles[row][column] = VirtualTile(row, column, color)
-        return virtual_tiles
+    def get_debug_red_value(self):
+        return self.hex_dijkstra_r(self.graph_red)
+
+    def get_debug_blue_value(self):
+        return self.hex_dijkstra_b(self.graph_blue)
+

@@ -28,15 +28,43 @@ class Game:
         self.board.draw(self.__canvas)
 
     def __update_ai(self):
-
+        second_move = len(self.occupiedTiles) == 1
         first_move = len(self.occupiedTiles) == 0
-        if self.playersTurn == "red" and self.isRedComputer and not first_move:
-            self.__ai.moves.clear()
-            self.__ai.minimax("red", 3, -m.inf, +m.inf, True)
-            tile = self.__ai.moves[0]
+        swap_rule = second_move and self.isSwapRule
+        if swap_rule and self.playersTurn == "red" and self.isBlueComputer and not self.isRedComputer:
+            msg = messagebox.askyesno("Swap Rule", "Do you want to Swap?")
+            if msg:
+                move = next(iter(self.occupiedTiles))
+                row = move[0]
+                col = move[1]
+                self.board.tiles[row][col].set_color(self.__canvas, "red")
+                self.__undo_stack.pop()
+                self.__undo_stack.append((row, col, "red"))
+                self.__ai.graph_blue[row + 1][col + 1].set_color("enemy", "red")
+                self.__ai.graph_red[row + 1][col + 1].set_color("friendly", "red")
+                self.playersTurn = "blue"
+        elif swap_rule and self.playersTurn == "blue" and not self.isBlueComputer and self.isRedComputer:
+            msg = messagebox.askyesno("Swap Rule", "Do you want to Swap?")
+            if msg == "yes":
+                move = next(iter(self.occupiedTiles))
+                row = move[0]
+                col = move[1]
+                self.board.tiles[row][col].set_color(self.__canvas, "blue")
+                self.__undo_stack.pop()
+                self.__undo_stack.append((row, col, "blue"))
+                self.__ai.graph_blue[row + 1][col + 1].set_color("friendly", "blue")
+                self.__ai.graph_red[row + 1][col + 1].set_color("enemy", "blue")
+                self.playersTurn = "red"
+        elif (self.playersTurn == "red" and self.isRedComputer and not first_move
+                and not swap_rule):
+            level = self.redComputerLevel
+            tile = self.__ai.minimax(list(), "red", level, level, -m.inf, +m.inf, True, list())
+            #tile = self.__ai.monte_carlo("red")
             row = tile[0]
             col = tile[1]
             self.board.tiles[row][col].set_color(self.__canvas, "red")
+            self.__ai.graph_blue[row + 1][col + 1].set_color("enemy", "red")
+            self.__ai.graph_red[row + 1][col + 1].set_color("friendly", "red")
             self.playersTurn = "blue"
             self.__redo_stack.clear()
             self.occupiedTiles.add((row, col))
@@ -44,16 +72,16 @@ class Game:
             if self.is_red_winner(self.board.tiles):
                 messagebox.showinfo("Game Over", "Red has won!")
                 self.apply()
-                print("blue")
-
-        elif self.playersTurn == "blue" and self.isBlueComputer and not first_move:
-            self.__ai.moves.clear()
-            self.__ai.minimax("blue", 3, -m.inf, +m.inf, True)
-            tile = self.__ai.moves[0]
-            print(tile)
+        elif (self.playersTurn == "blue" and self.isBlueComputer and not first_move
+              and not swap_rule):
+            # tile = self.__ai.monte_carlo("blue")
+            level = self.blueComputerLevel
+            tile = self.__ai.minimax(list(), "blue", level, level, -m.inf, +m.inf, True, list())
             row = tile[0]
             col = tile[1]
             self.board.tiles[row][col].set_color(self.__canvas, "blue")
+            self.__ai.graph_blue[row + 1][col + 1].set_color("friendly", "blue")
+            self.__ai.graph_red[row + 1][col + 1].set_color("enemy", "blue")
             self.playersTurn = "red"
             self.__redo_stack.clear()
             self.occupiedTiles.add((row, col))
@@ -61,23 +89,99 @@ class Game:
             if self.is_blue_winner(self.board.tiles):
                 messagebox.showinfo("Game Over", "Blue has won!")
                 self.apply()
-                print("blue")
-        elif self.playersTurn == "blue" and self.isBlueComputer and first_move:
+        elif self.playersTurn == "blue" and self.isBlueComputer and first_move and not self.isSwapRule:
             row = 5
             col = 6
             self.board.tiles[row][col].set_color(self.__canvas, "blue")
+            self.__ai.graph_blue[row + 1][col + 1].set_color("friendly", "blue")
+            self.__ai.graph_red[row + 1][col + 1].set_color("enemy", "blue")
             self.playersTurn = "red"
             self.__redo_stack.clear()
             self.occupiedTiles.add((row, col))
             self.__undo_stack.append((row, col, "blue"))
-        elif self.playersTurn == "red" and self.isBlueComputer and first_move:
+        elif self.playersTurn == "red" and self.isRedComputer and first_move and not self.isSwapRule:
             row = 5
             col = 6
             self.board.tiles[row][col].set_color(self.__canvas, "red")
+            self.__ai.graph_blue[row + 1][col + 1].set_color("enemy", "red")
+            self.__ai.graph_red[row + 1][col + 1].set_color("friendly", "red")
             self.playersTurn = "blue"
             self.__redo_stack.clear()
             self.occupiedTiles.add((row, col))
             self.__undo_stack.append((row, col, "red"))
+        elif self.playersTurn == "blue" and self.isBlueComputer and first_move and self.isSwapRule:
+            row = 9
+            col = 9
+            self.board.tiles[row][col].set_color(self.__canvas, "blue")
+            self.playersTurn = "red"
+            self.__redo_stack.clear()
+            self.occupiedTiles.add((row, col))
+            msg = messagebox.askyesno("Swap Rule", "Do you want to Swap?")
+            if msg == "yes":
+                move = next(iter(self.occupiedTiles))
+                row = move[0]
+                col = move[1]
+                self.board.tiles[row][col].set_color(self.__canvas, "blue")
+                self.playersTurn = "red"
+                self.__undo_stack.append((row, col, "red"))
+                self.__ai.graph_blue[row + 1][col + 1].set_color("enemy", "red")
+                self.__ai.graph_red[row + 1][col + 1].set_color("friendly", "red")
+            self.__undo_stack.append((row, col, "blue"))
+            self.__ai.graph_blue[row + 1][col + 1].set_color("friendly", "blue")
+            self.__ai.graph_red[row + 1][col + 1].set_color("enemy", "blue")
+        elif self.playersTurn == "red" and self.isRedComputer and first_move and self.isSwapRule:
+            row = 9
+            col = 9
+            self.board.tiles[row][col].set_color(self.__canvas, "red")
+            self.playersTurn = "blue"
+            self.__redo_stack.clear()
+            self.occupiedTiles.add((row, col))
+
+            self.__undo_stack.append((row, col, "blue"))
+            self.__ai.graph_blue[row + 1][col + 1].set_color("friendly", "blue")
+            self.__ai.graph_red[row + 1][col + 1].set_color("enemy", "blue")
+        elif self.playersTurn == "red" and self.isRedComputer and swap_rule:
+            move = next(iter(self.occupiedTiles))
+            row = move[0]
+            col = move[1]
+            if row in range(3, 8) and col in range(3, 8):
+                messagebox.showinfo("Swap Rule", "Red Swapped your move!")
+                self.board.tiles[row][col].set_color(self.__canvas, "red")
+                self.playersTurn = "blue"
+            else:
+                level = self.redComputerLevel
+                tile = self.__ai.minimax(list(), "red", level, level, -m.inf, +m.inf, True, list())
+                # tile = self.__ai.monte_carlo("red")
+                row = tile[0]
+                col = tile[1]
+                self.board.tiles[row][col].set_color(self.__canvas, "red")
+                self.__ai.graph_blue[row + 1][col + 1].set_color("enemy", "red")
+                self.__ai.graph_red[row + 1][col + 1].set_color("friendly", "red")
+                self.playersTurn = "blue"
+                self.__redo_stack.clear()
+                self.occupiedTiles.add((row, col))
+                self.__undo_stack.append((row, col, "red"))
+
+        elif self.playersTurn == "blue" and self.isBlueComputer and swap_rule:
+            move = next(iter(self.occupiedTiles))
+            row = move[0]
+            col = move[1]
+            if row in range(3, 8) and col in range(3, 8):
+                messagebox.showinfo("Swap Rule", "Blue Swapped your move!")
+                self.board.tiles[row][col].set_color(self.__canvas, "blue")
+                self.playersTurn = "red"
+            else:
+                level = self.blueComputerLevel
+                tile = self.__ai.minimax(list(), "blue", level, level, -m.inf, +m.inf, True, list())
+                row = tile[0]
+                col = tile[1]
+                self.board.tiles[row][col].set_color(self.__canvas, "blue")
+                self.__ai.graph_blue[row + 1][col + 1].set_color("friendly", "blue")
+                self.__ai.graph_red[row + 1][col + 1].set_color("enemy", "blue")
+                self.playersTurn = "red"
+                self.__redo_stack.clear()
+                self.occupiedTiles.add((row, col))
+                self.__undo_stack.append((row, col, "blue"))
         self.__canvas.after(1, self.__update_ai)
 
     def mouse_input_config(self):
@@ -93,6 +197,8 @@ class Game:
             self.playersTurn = "red"
         self.occupiedTiles.remove((to_remove[0], to_remove[1]))
         self.board.tiles[to_remove[0]][to_remove[1]].set_color(self.__canvas, "white")
+        self.__ai.graph_blue[to_remove[0] + 1][to_remove[0] + 1].set_color("impartial", "white")
+        self.__ai.graph_red[to_remove[0] + 1][to_remove[0] + 1].set_color("impartial", "white")
         self.__redo_stack.append(to_remove)
 
     def redo(self, event):
@@ -101,9 +207,13 @@ class Game:
         to_add = self.__redo_stack.pop()
         if to_add[2] == "red":
             self.board.tiles[to_add[0]][to_add[1]].set_color(self.__canvas, "red")
+            self.__ai.graph_blue[to_add[0] + 1][to_add[1] + 1].set_color("enemy", "red")
+            self.__ai.graph_red[to_add[0] + 1][to_add[1] + 1].set_color("friendly", "red")
             self.playersTurn = "blue"
         else:
             self.board.tiles[to_add[0]][to_add[1]].set_color(self.__canvas, "blue")
+            self.__ai.graph_blue[to_add[0] + 1][to_add[1] + 1].set_color("friendly", "blue")
+            self.__ai.graph_red[to_add[0] + 1][to_add[1] + 1].set_color("enemy", "blue")
             self.playersTurn = "red"
         self.occupiedTiles.add((to_add[0], to_add[1]))
         self.__undo_stack.append(to_add)
@@ -115,11 +225,11 @@ class Game:
             if self.playersTurn == "red":
                 if self.isRedComputer or cur_tag.find('-') == -1:
                     return
+
                 self.__redo_stack.clear()
                 self.__canvas.itemconfig(tk.CURRENT, fill="red")
                 self.playersTurn = "blue"
                 if self.is_red_winner(self.board.tiles):
-                    print("Farbe = ", self.__canvas.itemcget(tk.CURRENT, 'fill'))
                     messagebox.showinfo("Game Over", "Red has won!")
                     self.apply()
                 index_dash = cur_tag.find('-')
@@ -127,6 +237,8 @@ class Game:
                 row = int(cur_tag[0:index_dash])
                 col = int(cur_tag[index_dash + 1:index_space])
                 self.board.tiles[row][col].fillColor = "red"
+                self.__ai.graph_blue[row + 1][col + 1].set_color("enemy", "red")
+                self.__ai.graph_red[row + 1][col + 1].set_color("friendly", "red")
                 self.occupiedTiles.add((row, col))
                 self.__undo_stack.append((row, col, "red"))
             else:
@@ -144,8 +256,11 @@ class Game:
                 row = int(cur_tag[0:index_dash])
                 col = int(cur_tag[index_dash + 1:index_space])
                 self.board.tiles[row][col].fillColor = "blue"
+                self.__ai.graph_blue[row + 1][col + 1].set_color("friendly", "blue")
+                self.__ai.graph_red[row + 1][col + 1].set_color("enemy", "blue")
                 self.occupiedTiles.add((row, col))
                 self.__undo_stack.append((row, col, "blue"))
+
 
     def is_red_winner(self, tiles):
         for row in range(11):
@@ -230,6 +345,8 @@ class Game:
 
     def apply(self):
         self.occupiedTiles.clear()
+        self.__ai.setup_dijkstra_blue()
+        self.__ai.setup_dijkstra_red()
         self.__clear_board()
         self.playersTurn = self.playerBegins
 

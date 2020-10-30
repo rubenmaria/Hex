@@ -18,7 +18,7 @@ class Hexagon:
         self.__init_hexagon()
         self.tag = tag
         self.fillColor = fill_color
-        self.__is_text = False
+        self.is_text = False
         self.text = ""
         self.__font = None
         self.__text_graphic = None
@@ -52,6 +52,7 @@ class Hexagon:
         self.text = text
         self.__font = tkf.Font(family="Lucida Grande", size=w)
         self.__textColor = color
+        self.is_text = True
         self.draw(canvas)
 
     def change_text(self, canvas, text):

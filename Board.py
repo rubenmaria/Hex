@@ -62,6 +62,11 @@ class Board:
                 tile.set_color(canvas, "white")
                 tile.change_text(canvas, '')
 
+    def clear_writing(self, canvas):
+        for tile_arrays in self.tiles:
+            for tile in tile_arrays:
+                tile.change_text(canvas, '')
+
     def change_transformable(self, canvas, offset_x, offset_y, width):
         self.width = width
         self.__offset_x = offset_x
