@@ -3,6 +3,7 @@ from AI import Ai
 from tkinter import messagebox
 import random as r
 import math as m
+from Neat import Neat
 
 
 class Game:
@@ -20,17 +21,21 @@ class Game:
         self.__visited = set()
         self.occupiedTiles = set()
         self.__ai = Ai(board, canvas, self.occupiedTiles)
-        self.__update_ai()
+        self.neat = Neat(canvas, board)
+        self.isSwapRuleDone = False
         self.__undo_stack = []
         self.__redo_stack = []
+        self.__update_ai()
 
     def draw(self):
         self.board.draw(self.__canvas)
 
     def __update_ai(self):
+        #self.neat.train()
         second_move = len(self.occupiedTiles) == 1
         first_move = len(self.occupiedTiles) == 0
-        swap_rule = second_move and self.isSwapRule
+        swap_rule = (second_move and self.isSwapRule) and not self.isSwapRuleDone
+        print("swap rule :", swap_rule, "moves =", len(self.occupiedTiles))
         if swap_rule and self.playersTurn == "red" and self.isBlueComputer and not self.isRedComputer:
             msg = messagebox.askyesno("Swap Rule", "Do you want to Swap?")
             if msg:
@@ -43,9 +48,10 @@ class Game:
                 self.__ai.graph_blue[row + 1][col + 1].set_color("enemy", "red")
                 self.__ai.graph_red[row + 1][col + 1].set_color("friendly", "red")
                 self.playersTurn = "blue"
+            self.isSwapRuleDone = True
         elif swap_rule and self.playersTurn == "blue" and not self.isBlueComputer and self.isRedComputer:
             msg = messagebox.askyesno("Swap Rule", "Do you want to Swap?")
-            if msg == "yes":
+            if msg:
                 move = next(iter(self.occupiedTiles))
                 row = move[0]
                 col = move[1]
@@ -55,6 +61,7 @@ class Game:
                 self.__ai.graph_blue[row + 1][col + 1].set_color("friendly", "blue")
                 self.__ai.graph_red[row + 1][col + 1].set_color("enemy", "blue")
                 self.playersTurn = "red"
+            self.isSwapRuleDone = True
         elif (self.playersTurn == "red" and self.isRedComputer and not first_move
                 and not swap_rule):
             level = self.redComputerLevel
@@ -116,16 +123,6 @@ class Game:
             self.playersTurn = "red"
             self.__redo_stack.clear()
             self.occupiedTiles.add((row, col))
-            msg = messagebox.askyesno("Swap Rule", "Do you want to Swap?")
-            if msg == "yes":
-                move = next(iter(self.occupiedTiles))
-                row = move[0]
-                col = move[1]
-                self.board.tiles[row][col].set_color(self.__canvas, "blue")
-                self.playersTurn = "red"
-                self.__undo_stack.append((row, col, "red"))
-                self.__ai.graph_blue[row + 1][col + 1].set_color("enemy", "red")
-                self.__ai.graph_red[row + 1][col + 1].set_color("friendly", "red")
             self.__undo_stack.append((row, col, "blue"))
             self.__ai.graph_blue[row + 1][col + 1].set_color("friendly", "blue")
             self.__ai.graph_red[row + 1][col + 1].set_color("enemy", "blue")
@@ -136,7 +133,6 @@ class Game:
             self.playersTurn = "blue"
             self.__redo_stack.clear()
             self.occupiedTiles.add((row, col))
-
             self.__undo_stack.append((row, col, "blue"))
             self.__ai.graph_blue[row + 1][col + 1].set_color("friendly", "blue")
             self.__ai.graph_red[row + 1][col + 1].set_color("enemy", "blue")
@@ -161,6 +157,7 @@ class Game:
                 self.__redo_stack.clear()
                 self.occupiedTiles.add((row, col))
                 self.__undo_stack.append((row, col, "red"))
+            self.isSwapRuleDone = True
 
         elif self.playersTurn == "blue" and self.isBlueComputer and swap_rule:
             move = next(iter(self.occupiedTiles))
@@ -182,6 +179,7 @@ class Game:
                 self.__redo_stack.clear()
                 self.occupiedTiles.add((row, col))
                 self.__undo_stack.append((row, col, "blue"))
+            self.isSwapRuleDone = True
         self.__canvas.after(1, self.__update_ai)
 
     def mouse_input_config(self):
@@ -232,6 +230,7 @@ class Game:
                 if self.is_red_winner(self.board.tiles):
                     messagebox.showinfo("Game Over", "Red has won!")
                     self.apply()
+                    return
                 index_dash = cur_tag.find('-')
                 index_space = cur_tag.find(' ')
                 row = int(cur_tag[0:index_dash])
@@ -250,7 +249,7 @@ class Game:
                 if self.is_blue_winner(self.board.tiles):
                     messagebox.showinfo("Game Over", "Blue has won!")
                     self.apply()
-                    print("blue")
+                    return
                 index_dash = cur_tag.find('-')
                 index_space = cur_tag.find(' ')
                 row = int(cur_tag[0:index_dash])
@@ -344,11 +343,12 @@ class Game:
         self.board.clear_board(self.__canvas)
 
     def apply(self):
-        self.occupiedTiles.clear()
         self.__ai.setup_dijkstra_blue()
         self.__ai.setup_dijkstra_red()
         self.__clear_board()
         self.playersTurn = self.playerBegins
+        self.occupiedTiles.clear()
+        self.isSwapRuleDone = False
 
     def change_transformable(self, canvas, x, y, width):
         self.board.change_transformable(canvas, x, y, width)

@@ -63,7 +63,7 @@ class Ai:
             if node.nodeType != "source":
                 node.distance = m.inf
         if len(destination_distance) == 0:
-            return 1000
+            return 12
         return min(destination_distance)
 
     def __update_dist_of_neighbour_b(self, node, graph, destination_distance, to_examine, visited):
@@ -116,7 +116,6 @@ class Ai:
         # self.delete_all_writing() #debugging
         visited = set()
         to_examine = c.copy(self.__to_examine_red_starting)
-        vertex_amount = self.__board.rowLength * self.__board.columnLength
 
         while True:
             node = self.get_min_dist_node(to_examine, visited)
@@ -132,7 +131,7 @@ class Ai:
             if node.nodeType != "source":
                 node.distance = m.inf
         if len(destination_distance) == 0:
-            return 1000
+            return 12
         return min(destination_distance)
 
     def __update_dist_of_neighbour_r(self, node, graph, destination_distance, to_examine, visited):
@@ -166,11 +165,7 @@ class Ai:
 
     def get_value_blue(self, graph_blue, graph_red):
         red = self.hex_dijkstra_r(graph_red)
-        if red == m.inf:
-            red = 1000
         blue = self.hex_dijkstra_b(graph_blue)
-        if blue == m.inf:
-            blue = 1000
         return red - blue
 
     def get_active_region(self, occupied_tiles):
@@ -211,8 +206,7 @@ class Ai:
 
     def __is_pos_on_board(self, position):
         if (position[0] < 0 or position[1] < 0 or
-                position[0] > self.__board.rowLength - 1 or
-                position[1] > self.__board.columnLength - 1):
+                position[0] > 10 or position[1] > 10):
             return False
         return True
 
@@ -464,9 +458,19 @@ class Ai:
                 return True
         return False
 
+    def is_game_over(self):
+        return self.is_red_winner(self.graph_red) or self.is_blue_winner(self.graph_blue)
+
     def get_debug_red_value(self):
         return self.hex_dijkstra_r(self.graph_red)
 
     def get_debug_blue_value(self):
         return self.hex_dijkstra_b(self.graph_blue)
+
+    def get_current_val(self, color):
+        if color == "red":
+            value = self.get_value_red(self.graph_red, self.graph_blue)
+        else:
+            value = self.get_value_blue(self.graph_blue, self.graph_red)
+        return value
 
