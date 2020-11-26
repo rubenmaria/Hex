@@ -39,11 +39,11 @@ class Board:
                     self.__edges.append(Hexagon(w, x, y, 'black', 'black', 3, "edge"))
                 elif row == -1 or row == 11:
                     h = Hexagon(w, x, y, 'black', 'blue', 3, "edgeRed")
-                    h.add_text("{}".format(col + 1), canvas)
+                    h.add_text(chr(65 + col), canvas)
                     self.__edges.append(h)
                 elif col == -1 or col == 11:
                     h = Hexagon(w, x, y, 'black', 'red', 3, "edgeBlue")
-                    h.add_text(chr(65 + row), canvas)
+                    h.add_text("{}".format(row + 1), canvas)
                     self.__edges.append(h)
                 else:
                     self.tiles[row][col] = Hexagon(w, x, y, 'black', 'white', 3, "{}-{}".format(row, col))

@@ -3,6 +3,7 @@ from AI import Ai
 from tkinter import messagebox
 import random as r
 import math as m
+from Y_Board import Y_Board
 
 
 class Game:
@@ -24,6 +25,7 @@ class Game:
         self.__undo_stack = []
         self.__redo_stack = []
         self.__update_ai()
+        self.y_board = Y_Board(11)
 
     def draw(self):
         self.board.draw(self.__canvas)
