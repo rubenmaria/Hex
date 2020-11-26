@@ -3,7 +3,6 @@ from AI import Ai
 from tkinter import messagebox
 import random as r
 import math as m
-from Neat import Neat
 
 
 class Game:
@@ -21,7 +20,6 @@ class Game:
         self.__visited = set()
         self.occupiedTiles = set()
         self.__ai = Ai(board, canvas, self.occupiedTiles)
-        self.neat = Neat(canvas, board)
         self.isSwapRuleDone = False
         self.__undo_stack = []
         self.__redo_stack = []
@@ -31,11 +29,9 @@ class Game:
         self.board.draw(self.__canvas)
 
     def __update_ai(self):
-        #self.neat.train()
         second_move = len(self.occupiedTiles) == 1
         first_move = len(self.occupiedTiles) == 0
         swap_rule = (second_move and self.isSwapRule) and not self.isSwapRuleDone
-        print("swap rule :", swap_rule, "moves =", len(self.occupiedTiles))
         if swap_rule and self.playersTurn == "red" and self.isBlueComputer and not self.isRedComputer:
             msg = messagebox.askyesno("Swap Rule", "Do you want to Swap?")
             if msg:
