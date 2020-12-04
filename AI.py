@@ -3,14 +3,17 @@ import math as m
 from HexNode import HexNode
 import copy as c
 import random as r
+from yBoard import YBoard
 
 
 class Ai:
-    def __init__(self, board, canvas, occupied_tiles):
+    def __init__(self, board, canvas, occupied_tiles, y_board_red, y_board_blue):
         self.__board = board
         self.occupied_tiles = occupied_tiles
         self.graph_blue = [[HexNode for j in range(13)] for i in range(13)]
         self.graph_red = [[HexNode for j in range(13)] for i in range(13)]
+        self.y_board_red = y_board_red
+        self.y_board_blue = y_board_blue
         self.__destination_length = 10
         self.__visited = set()
         self.__to_examine_red_starting = set()
@@ -18,6 +21,43 @@ class Ai:
         self.__canvas = canvas
         self.setup_dijkstra_blue()
         self.setup_dijkstra_red()
+
+    def f(self, p, q, r):
+        return 0.5 * (p + q + r - p * q * r)
+
+    def g(self, q, r):
+        return 0.5 * (1 - q * r)
+
+    def y_eval(self, y_board_pos):
+        board_size = self.__board.rowLength + self.__board.rowLength - 1
+        val = [YBoard(11, "i") for i in range(0, board_size)]
+        val[board_size - 1] = c.copy(y_board_pos)
+        #val[board_size -1].print_board()
+        for b in range(board_size - 2, -1, -1):
+            for x in range(0, b + 1):
+                for y in range(0, x + 1):
+                    p = val[b + 1].get_y(x, y)
+                    q = val[b + 1].get_y(x + 1, y)
+                    r = val[b + 1].get_y(x + 1, y + 1)
+                    prob = self.f(p, q, r)
+                    val[b].place_y_val(x, y, prob)
+            #val[b].print_board()
+        return val
+
+    def get_y_move(self, y_board_pos):
+        board_size = self.__board.rowLength + self.__board.rowLength - 1
+        move = [YBoard(11, "i") for i in range(0, board_size)]
+        val = c.copy(self.y_eval(y_board_pos))
+        move[0].place_y_val(0, 0, 1)
+        for b in range(1, board_size):
+            for x in range(0, b + 1):
+                for y in range(0, x + 1):
+                    p = move[b - 1].get_y(x, y) * self.g(val[b].get_y(x + 1, y), val[b].get_y(x + 1, y + 1))
+                    q = move[b - 1].get_y(x - 1, y) * self.g(val[b].get_y(x, y), val[b].get_y(x, y + 1))
+                    r = move[b - 1].get_y(x - 1, y - 1) * self.g(val[b].get_y(x, y - 1), val[b].get_y(x, y))
+                    prob = p + q + r
+                    move[b].place_y_val(x, y, prob)
+        move[board_size - 1].print_board()
 
     def __write_distance(self, tile, distance):
         if not tile.is_text:
@@ -473,4 +513,3 @@ class Ai:
         else:
             value = self.get_value_blue(self.graph_blue, self.graph_red)
         return value
-
