@@ -1,4 +1,5 @@
 import tkinter as tk
+from GUI import Gui
 from AI import Ai
 from tkinter import messagebox
 import random as r
@@ -58,10 +59,10 @@ class Game:
             messagebox.showinfo("Game Over", "Red has won!")
         else:
             messagebox.showinfo("Game Over", "Blue has won!")
-        self.apply()
+        self.restart_game()
 
     def __update_ai(self):
-        self.__ai.get_y_move(self.y_board_red)
+        print(self.__ai.y_eval(self.y_board_red)[0].get_y(0, 0))
 
         if not self.isRedComputer and not self.isBlueComputer:
             self.__canvas.after(1, self.__update_ai)
@@ -285,12 +286,14 @@ class Game:
                 return True
         return False
 
+
+
     def __clear_board(self):
         self.board.clear_board(self.__canvas)
         self.y_board_red = YBoard(11, "red")
         self.y_board_blue = YBoard(11, "blue")
 
-    def apply(self):
+    def restart_game(self):
         self.__ai.setup_dijkstra_blue()
         self.__ai.setup_dijkstra_red()
         self.__clear_board()

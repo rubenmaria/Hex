@@ -32,7 +32,7 @@ class Ai:
         board_size = self.__board.rowLength + self.__board.rowLength - 1
         val = [YBoard(11, "i") for i in range(0, board_size)]
         val[board_size - 1] = c.copy(y_board_pos)
-        #val[board_size -1].print_board()
+        # val[board_size -1].print_board()
         for b in range(board_size - 2, -1, -1):
             for x in range(0, b + 1):
                 for y in range(0, x + 1):
@@ -41,7 +41,7 @@ class Ai:
                     r = val[b + 1].get_y(x + 1, y + 1)
                     prob = self.f(p, q, r)
                     val[b].place_y_val(x, y, prob)
-            #val[b].print_board()
+            # val[b].print_board()
         return val
 
     def get_y_move(self, y_board_pos):
