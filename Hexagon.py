@@ -8,58 +8,52 @@ class Hexagon:
         radius = (width / 2) / m.cos(m.radians(30))
         self.width = width  # distance between the left most edge and the center point
         self.height = radius * 2
-        self.side_length = radius
-        self.__mOutlineThick = outline_thickness
-        self.__mOutColor = outline_color
-        self.__mRadius = radius
-        self.__mCenterPos = Vec2(x + width, y + radius)
-        self.__mPoints = []
-        self.__mCoordinates = []
+        self.sideLength = radius
+        self.__outlineThickness = outline_thickness
+        self.__outlineColor = outline_color
+        self.__radius = radius
+        self.__centerPos = Vec2(x + width, y + radius)
+        self.__points = []
+        self.__coordinates = []
         self.__init_hexagon()
         self.tag = tag
         self.fillColor = fill_color
-        self.is_text = False
+        self.isText = False
         self.text = ""
         self.__font = None
-        self.__text_graphic = None
+        self.__textGraphic = None
         self.__textColor = 'white'
-        self.__hex_canvas_object = None
+        self.__hexCanvasObject = None
 
     def __init_hexagon(self):
-        r = self.__mRadius
-        x = self.__mCenterPos.x
-        y = self.__mCenterPos.y
+        r = self.__radius
+        x = self.__centerPos.x
+        y = self.__centerPos.y
         for i in range(7):
             rad = m.radians(30.0 + i * 60)
             cos_val = m.cos(rad)
             sin_val = m.sin(rad)
             p = Vec2(x + cos_val * r, y + sin_val * r)
-            self.__mCoordinates.append(p.x)
-            self.__mCoordinates.append(p.y)
-            self.__mPoints.append(p)
+            self.__coordinates.append(p.x)
+            self.__coordinates.append(p.y)
+            self.__points.append(p)
 
     def draw(self, canvas):
-        self.__hex_canvas_object = canvas.create_polygon(self.__mCoordinates, outline=self.__mOutColor,
-                                                         fill=self.fillColor, width=self.__mOutlineThick, tag=self.tag)
-        self.__text_graphic = canvas.create_text(self.__mCenterPos.x, self.__mCenterPos.y, text=self.text,
-                                                 fill=self.__textColor, font=self.__font, tag=self.tag)
-
-    def get_radius(self):
-        return self.__mRadius
+        self.__hexCanvasObject = canvas.create_polygon(self.__coordinates, outline=self.__outlineColor,
+                                                       fill=self.fillColor, width=self.__outlineThickness, tag=self.tag)
+        self.__textGraphic = canvas.create_text(self.__centerPos.x, self.__centerPos.y, text=self.text,
+                                                fill=self.__textColor, font=self.__font, tag=self.tag)
 
     def add_text(self, text, canvas, color='white'):
         w = m.floor(self.width / 3)
         self.text = text
         self.__font = tkf.Font(family="Lucida Grande", size=w)
         self.__textColor = color
-        self.is_text = True
+        self.isText = True
         self.draw(canvas)
 
     def change_text(self, canvas, text):
-        canvas.itemconfig(self.__text_graphic, text=text)
-
-    def get_fill_color(self, canvas):
-        return canvas.itemcget(self.tag, 'fill')
+        canvas.itemconfig(self.__textGraphic, text=text)
 
     def set_color(self, canvas, color):
         self.fillColor = color
@@ -77,8 +71,8 @@ class Hexagon:
             p = Vec2(xc + cos_val * r, yc + sin_val * r)
             coordinates.append(p.x)
             coordinates.append(p.y)
-        self.__mCoordinates = coordinates
+        self.__coordinates = coordinates
         w = m.floor(width / 3)
         self.__font = tkf.Font(family="Lucida Grande", size=w)
-        self.__mCenterPos = Vec2(xc, yc)
+        self.__centerPos = Vec2(xc, yc)
         self.draw(canvas)

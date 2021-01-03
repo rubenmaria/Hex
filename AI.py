@@ -60,7 +60,7 @@ class Ai:
         move[board_size - 1].print_board()
 
     def __write_distance(self, tile, distance):
-        if not tile.is_text:
+        if not tile.isText:
             tile.add_text(str(distance), self.__board.canvas, 'black')
         else:
             tile.change_text(self.__board.canvas, str(distance))

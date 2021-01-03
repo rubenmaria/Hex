@@ -3,7 +3,7 @@ import time as t
 from GUI import Gui
 from Board import Board
 from Game import Game
-WIDTH, HEIGHT = 1100, 600
+WIDTH, HEIGHT = 1200, 700
 
 
 def main():
