@@ -3,12 +3,13 @@ from GUI import Gui
 from AI import Ai
 from tkinter import messagebox
 import random as r
+from GUI import Gui
 import math as m
 from yBoard import YBoard
 
 
 class Game:
-    def __init__(self, board, canvas):
+    def __init__(self, root, board, canvas):
         self.__playersTurn = "red"
         self.playerBegins = "red"
         self.isSwapRule = False
@@ -27,6 +28,7 @@ class Game:
         self.isSwapRuleDone = False
         self.__undo_stack = []
         self.__redo_stack = []
+        self.gui = Gui(canvas, root, self.apply)
         self.__update_ai()
 
     def draw(self):
@@ -284,11 +286,29 @@ class Game:
         self.y_board_red = YBoard(11, "red")
         self.y_board_blue = YBoard(11, "blue")
 
+    def apply(self):
+        self.isBlueComputer = self.gui.isBlueComputer.get()
+        self.isRedComputer = self.gui.isRedComputer.get()
+        self.isSwapRule = self.gui.isSwapRule.get()
+        self.blueComputerLevel = self.gui.blueComputerLevel.get()
+        self.redComputerLevel = self.gui.redComputerLevel.get()
+        if self.gui.isRedBeginning.get():
+            self.playerBegins = "red"
+        else:
+            self.playerBegins = "blue"
+        self.__playersTurn = self.playerBegins
+
     def restart_game(self):
+        self.gui.blueComputerLevel.set(value=1)
+        self.gui.redComputerLevel.set(value=1)
+        self.gui.isRedBeginning.set(value=True)
+        self.gui.isRedComputer.set(value=False)
+        self.gui.isBlueComputer.set(value=False)
+        self.gui.isSwapRule.set(value=False)
+        self.apply()
         self.__ai.setup_dijkstra_blue()
         self.__ai.setup_dijkstra_red()
         self.__clear_board()
-        self.__playersTurn = self.playerBegins
         self.occupiedTiles.clear()
         self.isSwapRuleDone = False
 
