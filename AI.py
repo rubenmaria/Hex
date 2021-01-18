@@ -87,15 +87,15 @@ class Ai:
         destination_distance = list()
         visited = set()
         to_examine = c.copy(self.__to_examine_blue_starting)
-        # self.delete_all_writing() #debugging
+        #self.delete_all_writing() #debugging
 
         while True:
-            node = self.get_min_dist_node(to_examine, visited)
+            node = self.get_min_dist_node(to_examine)
             if node is None:
                 break
-            """row = node.x - 1
+            row = node.x - 1
             col = node.y - 1
-            if self.__is_pos_on_board((row, col)):
+            """if self.__is_pos_on_board((row, col)):
                 self.__write_distance(self.__board.tiles[row][col], node.distance) #debugging"""
             to_examine.remove(node)
             visited.add(node)
@@ -131,7 +131,7 @@ class Ai:
             if neighbour_node.nodeType == "destination":
                 destination_distance.append(node.distance)
 
-    def get_min_dist_node(self, to_examine, visited):
+    def get_min_dist_node(self, to_examine):
         if len(to_examine) == 0:
             return None
         return min(to_examine)
@@ -153,12 +153,12 @@ class Ai:
 
     def hex_dijkstra_r(self, graph):
         destination_distance = list()
-        # self.delete_all_writing() #debugging
+        #self.delete_all_writing() #debugging
         visited = set()
         to_examine = c.copy(self.__to_examine_red_starting)
 
         while True:
-            node = self.get_min_dist_node(to_examine, visited)
+            node = self.get_min_dist_node(to_examine)
             if node is None:
                 break
             row = node.x - 1
@@ -398,7 +398,7 @@ class Ai:
                     max_eval = val
                     if depth == max_depth:
                         best_move = to_examine
-                alpha = max(alpha, max_eval)
+                alpha = max(alpha, val)
                 if depth == max_depth:
                     moves.clear()
                 if beta <= alpha:
@@ -418,7 +418,7 @@ class Ai:
                     return winning_move[0]
                 if min_eval > val:
                     min_eval = val
-                beta = min(beta, min_eval)
+                beta = min(beta, val)
                 if beta <= alpha:
                     break
             moves.pop()

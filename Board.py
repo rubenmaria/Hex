@@ -6,6 +6,7 @@ class Board:
 
     def __init__(self, offset_x, offset_y, width, canvas):
         self.tiles = [[Hexagon for j in range(11)] for i in range(11)]
+        self.canvas = canvas
         self.rowLength = 11
         self.columnLength = 11
         self.__edges = []
@@ -25,7 +26,7 @@ class Board:
         for col in range(13):
             y = offset_y + col * delta_y
             for row in range(0, 13):
-                x = offset_x + row * w
+                x = offset_x + row * w + w/2 * col
                 if row == 0 and col == 0 or row == 12 and col == 0:
                     self.__edges.append(Hexagon(w, x, y, 'black', 'black', 3, "edge"))
                 elif row == 0 and col == 12 or row == 12 and col == 12:
@@ -40,7 +41,7 @@ class Board:
                     self.__edges.append(h)
                 else:
                     self.tiles[row - 1][col - 1] = Hexagon(w, x, y, 'black', 'white', 3, "{}-{}".format(row - 1, col - 1))
-            offset_x += w / 2
+
 
     def draw(self, canvas):
         for tile_arrays in self.tiles:
