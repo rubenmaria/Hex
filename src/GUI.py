@@ -2,7 +2,7 @@ import tkinter as tk
 
 
 class Gui:
-    def __init__(self, canvas, root, apply_method, restart_method):
+    def __init__(self, canvas, root, apply_method, restart_method, resize_method):
         self.__root = root
         self.__canvas = canvas
         self.blueComputerLevel = tk.IntVar(value=1)
@@ -17,9 +17,9 @@ class Gui:
         self.__menuBlue = tk.Menu(self.__menuBar, tearoff=0)
         self.__menuLevelBlue = tk.Menu(self.__menuBlue, tearoff=0)
         self.__menuGame = tk.Menu(self.__menuBar, tearoff=0)
-        self.__init_menu(apply_method, restart_method)
+        self.__init_menu(apply_method, restart_method, resize_method)
 
-    def __init_menu(self, apply_method, restart_method):
+    def __init_menu(self, apply_method, restart_method, resize_method):
         self.__menuRed.add_radiobutton(label="Player", value=0, var=self.isRedComputer)
         self.__menuRed.add_radiobutton(label="Computer", value=1, variable=self.isRedComputer)
         self.__menuLevelRed.add_radiobutton(label="Level 1", value=1, variable=self.redComputerLevel)
@@ -40,6 +40,7 @@ class Gui:
         self.__menuBar.add_cascade(label="Game", menu=self.__menuGame)
         self.__menuBar.add_command(label="Apply Changes", command=apply_method)
         self.__menuBar.add_command(label="Restart Game", command=restart_method)
+        self.__menuBar.add_command(label="Resize Game", command=resize_method)
         self.__root.config(menu=self.__menuBar)
 
 

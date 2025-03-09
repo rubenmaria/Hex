@@ -29,8 +29,15 @@ class Game:
         self.__isSwapRuleDone = False
         self.__undoStack = []
         self.__redoStack = []
-        self.gui = Gui(canvas, root, self.apply, self.restart_game)
+        self.gui = Gui(canvas, root, self.apply, self.restart_game, self.resize)
         self.__update_ai()
+    
+    def resize(self):
+        width = self.__root.winfo_width()
+        height = self.__root.winfo_height()
+        self.__canvas.delete(tk.ALL)
+        self.__canvas.config(width=width, height=height)
+        self.change_transformable(width * 1 / 20, height * 1 / 15, width / 2 + width / 15)
 
     def draw(self):
         self.board.draw(self.__canvas)
@@ -317,9 +324,9 @@ class Game:
         self.occupiedTiles.clear()
         self.__isSwapRuleDone = False
 
-    def change_transformable(self, canvas, x, y, width):
-        self.board.change_transformable(canvas, x, y, width)
+    def change_transformable(self, x, y, width):
+        self.board.change_transformable(self.__canvas, x, y, width)
 
     def __place_hex_on_y(self, x, y, color):
         self.y_board_red.place_hex(x, y, color)
-        self.y_board_blue.place_hex(x, y, color)#TODO: MADIG
+        self.y_board_blue.place_hex(x, y, color)

@@ -17,20 +17,8 @@ def main():
     canvas.pack()
     root.bind("<Control-z>", game.undo)
     root.bind("<Control-y>", game.redo)
-
-    def resizer(event):
-        width, height = event.width - 4, event.height - 4
-        if WIDTH == width and HEIGHT == height:
-            return
-        if width < 600 or height < 600:
-            return
-        canvas.delete(tk.ALL)
-        canvas.config(width=width, height=height)
-        game.change_transformable(canvas, width * 1 / 12, height * 1/10, width / 2 + width / 10)
-
     canvas.update_idletasks()
     canvas.after(1)
-    root.bind("<Configure>", resizer)
     root.mainloop()
 
 
